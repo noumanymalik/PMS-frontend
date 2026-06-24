@@ -1,0 +1,553 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+
+@model PMS.UI.Pages.Employees.EditModel
+@{
+    ViewData["Title"] = "Edit Employee";
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+}
+
+@section HeadBlock {
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+    <link href="~/lib/select2-bootstrap-5-theme/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+}
+
+<div class="page-header">
+    <div class="page-title">
+        <h4>@ViewData["Title"]</h4>
+    </div>
+</div>
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+<input type="hidden" id="redirectToListing" value="@Url.Page("Index")" />
+
+<form method="post" id="frmEmployeeEdit">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="EmployeeId" value="@Model.EmployeeId" />
+
+    <div class="container-fluid px-4 py-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <!-- BASIC INFO -->
+                <div class="card mb-4">
+                    <div class="card-header">Basic Information</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.CreateDate" class="control-label"></label>
+                                <input asp-for="Employee.CreateDate"
+                                       type="date"
+                                       class="form-control datepicker" id="create-date"
+                                       readonly />
+                                <span asp-validation-for="Employee.CreateDate" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.Code" class="control-label"></label>
+                                <input asp-for="Employee.Code" class="form-control emp-code" />
+                                <span asp-validation-for="Employee.Code" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.Name" class="control-label"></label>
+                                <input asp-for="Employee.Name" class="form-control emp-name" />
+                                <span asp-validation-for="Employee.Name" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Gender</label>
+                                <select id="ddlGenderType" class="form-select" name="genderType">
+                                    <option value="1">Male</option>
+                                    <option value="2">Female</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.NextOfKin" class="control-label"></label>
+                                <input asp-for="Employee.NextOfKin" class="form-control nxt-kin" />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOB INFO -->
+                <div class="card mb-4">
+                    <div class="card-header">Job Information</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.SupervisorId" class="control-label"></label>
+                                <select asp-for="Employee.SupervisorId" required class="form-control select2 ddl-Supervisors col-lg-4 col-sm-6 col-12">
+                                    <option>Choose</option>
+                                </select>
+                                <span asp-validation-for="Employee.SupervisorId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.DepartmentId" class="control-label"></label>
+                                <select asp-for="Employee.DepartmentId" required class="form-control select2 ddl-Departments col-lg-4 col-sm-6 col-12">
+                                    <option>Choose</option>
+                                </select>
+                                <span asp-validation-for="Employee.DepartmentId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.DesignationId" class="control-label"></label>
+                                <select asp-for="Employee.DesignationId" required class="form-control select2 ddl-Designations col-lg-4 col-sm-6 col-12">
+                                    <option>Choose</option>
+                                </select>
+                                <span asp-validation-for="Employee.DesignationId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.JoiningDate" class="control-label"></label>
+                                <input asp-for="Employee.JoiningDate"
+                                       type="date"
+                                       class="form-control datepicker" id="join-date" />
+                                <span asp-validation-for="Employee.JoiningDate" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.LeavingDate" class="control-label"></label>
+                                <input asp-for="Employee.LeavingDate"
+                                       type="date"
+                                       class="form-control datepicker" id="leaving-date" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select id="ddlJobStatus" class="form-select" name="job-status">
+                                    <option value="1">Permanent</option>
+                                    <option value="2">Temporary</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Job Status</label>
+                                <select id="ddlStatus" class="form-select" name="status">
+                                    <option value="1">Active</option>
+                                    <option value="2">Inactive</option>
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTACT -->
+                <div class="card mb-4">
+                    <div class="card-header">Contact Information</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.PhoneNo1" class="control-label"></label>
+                                <input asp-for="Employee.PhoneNo1" class="form-control pn-1"
+                                       placeholder="XXXX-XXXXXXX" data-mask="0000-0000000" />
+
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.PhoneNo2" class="control-label"></label>
+                                <input asp-for="Employee.PhoneNo2" class="form-control pn-2"
+                                       placeholder="XXXX-XXXXXXX" data-mask="0000-0000000" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.EmailAddressCompany" class="control-label"></label>
+                                <input asp-for="Employee.EmailAddressCompany" class="form-control email-comp" placeholder="user@example.com" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.PermanentAddress" class="control-label"></label>
+                                <input asp-for="Employee.EmailAddressPersonal" class="form-control email-per" placeholder="user@example.com" />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BANK -->
+                <div class="card mb-4">
+                    <div class="card-header">Bank Information</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.BankName" class="control-label"></label>
+                                <input asp-for="Employee.BankName" class="form-control bnk-nam" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.AccountTittle" class="control-label"></label>
+                                <input asp-for="Employee.AccountTittle" class="form-control ac-tittle" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.BankAccountNo" class="control-label"></label>
+                                <input asp-for="Employee.BankAccountNo" class="form-control ac-no" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.IBAN" class="control-label"></label>
+                                <input asp-for="Employee.IBAN" class="form-control iban-no" />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SALARY -->
+                <div class="card mb-4">
+                    <div class="card-header">Salary Information</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.BasicSalary" class="control-label"></label>
+                                <input asp-for="Employee.BasicSalary" type="number" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="form-control basic-sal" />
+                                <span asp-validation-for="Employee.BasicSalary" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.KPI" class="control-label"></label>
+                                <input asp-for="Employee.KPI" type="number" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="form-control kbi-sal" />
+                                <span asp-validation-for="Employee.KPI" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.Incentive" class="control-label"></label>
+                                <input asp-for="Employee.Incentive" type="number" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="form-control ince-sal" />
+                                <span asp-validation-for="Employee.Incentive" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Salary Type</label>
+                                <select id="ddlSalaryType" class="form-select" name="salarytype">
+                                    <option value="0">Choose</option>
+                                    <option value="1">Daily</option>
+                                    <option value="2">Weekly</option>
+                                    <option value="3">Fortnightly</option>
+                                    <option value="4">Monthly</option>
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CNIC Information -->
+                <div class="card mb-4">
+                    <div class="card-header">CNIC Information</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.CNICNo" class="control-label"></label>
+                                <input asp-for="Employee.CNICNo" class="form-control cnic-no" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.FullName" class="control-label"></label>
+                                <input asp-for="Employee.FullName" class="form-control full-name" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.FatherOrHusbandName" class="control-label"></label>
+                                <input asp-for="Employee.FatherOrHusbandName" class="form-control fath-name" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.FamilyNo" class="control-label"></label>
+                                <input asp-for="Employee.FamilyNo" class="form-control fam-no" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.DateOfBirth" class="control-label"></label>
+                                <input asp-for="Employee.DateOfBirth"
+                                       type="date"
+                                       class="form-control datepicker" id="birth-date" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.DateOfIssue" class="control-label"></label>
+                                <input asp-for="Employee.DateOfIssue"
+                                       type="date"
+                                       class="form-control datepicker" id="issue-date" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Employee.DateOfExpiry" class="control-label"></label>
+                                <input asp-for="Employee.DateOfExpiry"
+                                       type="date"
+                                       class="form-control datepicker" id="exp-date" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Employee.ExistingAddress" class="control-label"></label>
+                                <input asp-for="Employee.ExistingAddress" class="form-control ex-address" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Employee.PermanentAddress" class="control-label"></label>
+                                <input asp-for="Employee.PermanentAddress" class="form-control per-address" />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBMIT -->
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary px-4">Save Employee</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</form>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+    <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+    <script type="text/javascript" src="~/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="~/lib/jquery-mask/jquery.mask.min.js"></script>
+
+
+    <script type="text/javascript">
+        $('a[href="/Employee"]').addClass('active');
+
+        var apiEndpoint = '@apiEndpoint';
+
+        $(document).ready(function () {
+
+            $.when(
+                initEmployees(),
+                initDepartments(),
+                initDesignations()
+            ).done(function () {
+                getEmployeeById($('#EmployeeId').val());
+
+            });
+
+        });
+
+        function initEmployees() {
+            return $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'Employee/GetAll',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (response) {
+
+                    var result = response.data.map(function (item) {
+                        return { id: item.id, text: item.name };
+                    });
+
+                    $('.ddl-Supervisors').select2({
+                        data: result,
+                        placeholder: 'Choose',
+                        theme: 'bootstrap-5',
+                        width: '100%'
+                    });
+                }
+            });
+        }
+
+        function initDepartments() {
+            return $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'Department/GetAll',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (response) {
+
+                    var result = response.data.map(function (item) {
+                        return { id: item.id, text: item.name };
+                    });
+
+                    $('.ddl-Departments').select2({
+                        data: result,
+                        placeholder: 'Choose',
+                        theme: 'bootstrap-5',
+                        width: '100%'
+                    });
+                }
+            });
+        }
+
+        function initDesignations() {
+            return $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'Designation/GetAll',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (response) {
+
+                    var result = response.data.map(function (item) {
+                        return { id: item.id, text: item.name };
+                    });
+
+                    $('.ddl-Designations').select2({
+                        data: result,
+                        placeholder: 'Choose',
+                        theme: 'bootstrap-5',
+                        width: '100%'
+                    });
+                }
+            });
+        }
+                
+        function getEmployeeById(id) {
+            $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'Employee/' + id,
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (response) {
+                     $('#create-date').val(response.createDate.split('T')[0]);
+                     $('#Employee_Code').val(response.code);
+                     $('#Employee_Name').val(response.name);
+                     $('#ddlGenderType').val(response.genderId).trigger('change');
+                     $('#Employee_NextOfKin').val(response.nextOfKin);
+
+                     $('.ddl-Supervisors').val(response.supervisorId.toString()).trigger('change');
+                     $('.ddl-Departments').val(response.departmentId.toString()).trigger('change');
+                     $('.ddl-Designations').val(response.designationId.toString()).trigger('change');
+                     $('#join-date').val(response.joiningDate?.split('T')[0] || '');
+                     $('#leaving-date').val(response.leavingDate?.split('T')[0] || '');
+                     $('#ddlJobStatus').val(response.jobStatusId).trigger('change');
+                     $('#ddlStatus').val(response.statusId).trigger('change');
+
+                     $('#Employee_PhoneNo1').val(response.phoneNo1);
+                     $('#Employee_PhoneNo2').val(response.phoneNo2);
+                     $('#Employee_EmailAddressCompany').val(response.emailAddressCompany);
+                     $('#Employee_PermanentAddress').val(response.emailAddressPersonal);
+
+                     $('#Employee_BankName').val(response.bankName);
+                     $('#Employee_AccountTittle').val(response.accountTittle);
+                     $('#Employee_BankAccountNo').val(response.bankAccountNo);
+                     $('#Employee_IBAN').val(response.iban);
+
+                     $('#Employee_BasicSalary').val(response.basicSalary);
+                     $('#Employee_KPI').val(response.kpi);
+                     $('#Employee_Incentive').val(response.incentive);
+                     $('#ddlSalaryType').val(response.salaryTypeId).trigger('change');
+
+                     $('#Employee_CNICNo').val(response.cnicNo);
+                     $('#Employee_FullName').val(response.fullName);
+                     $('#Employee_FatherOrHusbandName').val(response.fatherOrHusbandName);
+                     $('#Employee_FamilyNo').val(response.familyNo);
+                     $('#birth-date').val(response.dateOfBirth?.split('T')[0] || '');
+                     $('#issue-date').val(response.dateOfIssue?.split('T')[0] || '');
+                     $('#exp-date').val(response.dateOfExpiry?.split('T')[0] || '');
+                     $('#Employee_ExistingAddress').val(response.existingAddress);
+                     $('#Employee_PermanentAddress').val(response.permanentAddress);
+
+                },
+                failure: function (response) {
+                    toastr.error('error!');
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+        }
+
+        $('#frmEmployeeEdit').on('submit', function (e) {
+            e.preventDefault();
+            updateEmployee($('#EmployeeId').val());
+        });
+
+        function updateEmployee(id) {
+            //debugger
+            var formData = {
+                Id: id,
+                createDate: $('#create-date').val(),
+                code: $('.emp-code').val(),
+                name: $('.emp-name').val(),
+                genderId: $("#ddlGenderType option:selected").val(),
+                nextOfKin: $('.nxt-kin').val(),
+
+                supervisorId: $(".ddl-Supervisors option:selected").val(),
+                departmentId: $(".ddl-Departments option:selected").val(),
+                designationId: $(".ddl-Designations option:selected").val(),
+                joiningDate: $('#join-date').val(),
+                leavingDate: $('#leaving-date').val(),
+                jobStatusId: $("#ddlJobStatus option:selected").val(),
+                statusId: $("#ddlStatus option:selected").val(),
+
+                phoneNo1: $('.pn-1').val(),
+                phoneNo2: $('.pn-2').val(),
+                emailAddressCompany: $('.email-comp').val(),
+                emailAddressPersonal: $('.email-per').val(),
+
+                bankName: $('.bnk-nam').val(),
+                accountTittle: $('.ac-tittle').val(),
+                bankAccountNo: $('.ac-no').val(),
+                iban: $('.iban-no').val(),
+
+                basicSalary: $('.basic-sal').val(),
+                kpi: $('.kbi-sal').val(),
+                incentive: $('.ince-sal').val(),
+                salaryTypeId: $("#ddlSalaryType option:selected").val(),
+
+                cnicNo: $('.cnic-no').val(),
+                fullName: $('.full-name').val(),
+                fatherOrHusbandName: $('.fath-name').val(),
+                familyNo: $('.fam-no').val(),
+                dateOfBirth: $('#birth-date').val(),
+                dateOfIssue: $('#issue-date').val(),
+                dateOfExpiry: $('#exp-date').val(),
+                existingAddress: $('.ex-address').val(),
+                permanentAddress: $('.per-address').val(),
+            };
+
+            $.ajax({
+                type: 'PUT',
+                url: apiEndpoint + 'Employee/' + id,
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                data: JSON.stringify(formData),
+                success: function (response) {
+                    debugger
+                    toastr.success(response.messages[0]);
+                    goBack();
+                },
+                failure: function (response) {
+                    alert('error!');
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+        }
+
+        function goBack() {
+            window.location.href = $('#redirectToListing').val();
+        }
+    </script>
+
+}

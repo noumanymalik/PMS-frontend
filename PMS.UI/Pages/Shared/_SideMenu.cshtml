@@ -1,0 +1,180 @@
+﻿@using Microsoft.AspNetCore.Http;
+@inject IHttpContextAccessor context;
+@{
+    var userManagementPermission = HasPermission.Get("User_Management", context.HttpContext);
+    var applicationUsersPermission = HasPermission.Get("Application_Users", context.HttpContext);
+    var userRolesPermission = HasPermission.Get("User_Roles", context.HttpContext);
+    var userPermission = HasPermission.Get("User_Permissions", context.HttpContext);
+    var administrationPermission = HasPermission.Get("Administration", context.HttpContext);
+    var teamStructurePermission = HasPermission.Get("Team_Structure", context.HttpContext);
+    var DepartmentPermission = HasPermission.Get("Department", context.HttpContext);
+    var designationPermission = HasPermission.Get("Designation", context.HttpContext);
+    var hierarchyPermission = HasPermission.Get("Hierarchy", context.HttpContext);
+    var leavePermission = HasPermission.Get("Leave", context.HttpContext);
+    var applyLeavePermission = HasPermission.Get("Apply_Leave", context.HttpContext);
+    var leaveStatusPermission = HasPermission.Get("Leave_Status", context.HttpContext);
+    var teamPendingLeavesPermission = HasPermission.Get("Team_Pending_Leaves", context.HttpContext);
+    var teamApprovedLeavesPermission = HasPermission.Get("Team_Approved_Leaves", context.HttpContext);
+    
+    var loanPermission = HasPermission.Get("Loan", context.HttpContext);
+    var loanRequestPermission = HasPermission.Get("Loan_Request", context.HttpContext);
+    var loanStatusPermission = HasPermission.Get("Loan_Status", context.HttpContext);
+    var teamPendingLoanPermission = HasPermission.Get("Team_Pending_Loan", context.HttpContext);
+    var finalPendingLoanPermission = HasPermission.Get("Final_Pending_Loan", context.HttpContext);
+    var releasedApprovedLoanPermission = HasPermission.Get("Released_Approved_Loan", context.HttpContext);
+
+    var policesPermission = HasPermission.Get("Polices", context.HttpContext);
+    var policiyDocumentsPermisssion = HasPermission.Get("Policiy_Documents", context.HttpContext);
+    var scoreCardPermission = HasPermission.Get("Score_Card", context.HttpContext);
+    var scoreCardDocumentsPermission = HasPermission.Get("Score_Card_Documents", context.HttpContext);
+}
+<div class="sidebar-inner slimscroll">
+    <div id="sidebar-menu" class="sidebar-menu">
+        <ul>
+            @if (userManagementPermission)
+            {
+                <li class="submenu">
+                    <a class="" href="javascript:void(0);"><i class="fa-solid fa-user fa-1-25x me-2"></i><span> User Management</span> <span class="menu-arrow"></span></a>
+                    <ul>
+                        @if (applicationUsersPermission)
+                        {
+                            <li><a asp-page="/Users/Index">Application Users</a></li>
+                        }
+                        @if (userRolesPermission)
+                        {
+                            <li><a asp-page="/Roles/Index">User Roles</a></li>
+                        }
+                        @if (userPermission)
+                        {
+                            <li><a asp-page="/Roles/Permissions">User Permissions</a></li>
+                        }
+                        <li><a asp-page="/Users/ChangePassword">Change Password</a></li>
+                        <li><a asp-page="/Authentication/Logout">Logout</a></li>
+                    </ul>
+                </li>
+            }
+
+            @if (administrationPermission)
+            {
+            <li class="submenu">
+                <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-users-cog fa-1-25x me-2"></i><span>Adminstration </span> <span class="menu-arrow"></span></a>
+                <ul>
+                        @if (teamStructurePermission)
+                        {
+                            <li><a asp-page="/Employees/Index">Team Structure</a></li>
+                        }
+                        @if (DepartmentPermission)
+                        {
+                            <li><a asp-page="/Departments/Index">Department</a></li>
+                        }
+                        @if (designationPermission)
+                        {
+                            <li><a asp-page="/Designations/Index">Designation</a></li>
+                        }
+                        @if (hierarchyPermission)
+                        {
+                            <li><a asp-page="/Employees/Hierarchy">Hierarchy</a></li>
+                        }
+                </ul>
+            </li>
+            }
+@*             <li class="submenu">
+                <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-tasks fa-1-25x me-2"></i><span>Shedule</span> <span class="menu-arrow"></span></a>
+                <ul>
+                    <li><a asp-page="/Shedules/ImportRota">Import Rotta</a></li>
+                </ul>
+            </li>
+
+            <li class="submenu">
+                <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-calendar-check fa-1-25x me-2"></i><span>Attendance</span> <span class="menu-arrow"></span></a>
+                <ul>
+                    <li><a asp-page="/Users/Index">Manage Attendance</a></li>
+                </ul>
+            </li> *@
+
+            @if (leavePermission)
+            {
+                <li class="submenu">
+                    <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-clipboard-list fa-1-25x me-2"></i><span>Leave</span> <span class="menu-arrow"></span></a>
+                <ul>
+                        @if (applyLeavePermission)
+                        {
+                            <li><a asp-page="/Leaves/Create">Apply Leave</a></li>
+                        }
+                        @if (leaveStatusPermission)
+                        {
+                            <li><a asp-page="/Leaves/EmployeeStatus">Leaves Status</a></li>
+                        }
+                        @if (teamPendingLeavesPermission)
+                        {
+                            <li><a asp-page="/Leaves/Pending">Team Pending Approvals</a></li>
+                        }
+                        @if (teamApprovedLeavesPermission)
+                        {
+                            <li><a asp-page="/Leaves/TeamStatus">Team Leaves Status</a></li>
+                        }
+                </ul>
+            </li>
+            }
+
+            @if (loanPermission)
+            {
+                <li class="submenu">
+                    <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-hand-holding-usd fa-1-25x me-2"></i><span>Loan</span> <span class="menu-arrow"></span></a>
+                <ul>
+                        @if (loanRequestPermission)
+                        {
+                            <li><a asp-page="/Loan/Create">Loan Request</a></li>
+                        }
+                        @if (loanStatusPermission)
+                        {
+                            <li><a asp-page="/Loan/LoanStatus">Loan Status</a></li>
+                        }
+                        @if (teamPendingLoanPermission)
+                        {
+                            <li><a asp-page="/Loan/PendingApprovalList">Team Pending Approval</a></li>
+                        }
+                        @if (finalPendingLoanPermission)
+                        {
+                            <li><a asp-page="/Loan/PendingFinalApprovalList">Final Pending Approval</a></li>
+                        }
+                        @if (releasedApprovedLoanPermission)
+                        {
+                            <li><a asp-page="/Loan/ReleaseLoan">Release Approved Loan</a></li>
+                        }
+                </ul>
+            </li>
+            }
+
+            @if (policesPermission)
+            {
+                <li class="submenu">
+                    <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-file-contract fa-1-25x me-2"></i><span>Policies</span> <span class="menu-arrow"></span></a>
+                <ul>
+                        @if (policiyDocumentsPermisssion)
+                        {
+                            <li><a asp-page="/Policies/Index">Policy Documents</a></li>
+                        }
+
+                </ul>
+            </li>
+            }
+            @if (scoreCardPermission)
+            {
+                <li class="submenu">
+                    <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-file-contract fa-1-25x me-2"></i><span>ScoreCard</span> <span class="menu-arrow"></span></a>
+                <ul>
+                        @if (scoreCardDocumentsPermission)
+                        {
+                            <li><a asp-page="/ScoreCard/Index">ScoreCard Documents</a></li>
+                        }
+
+                </ul>
+            </li>
+            }
+
+            
+
+        </ul>
+    </div>
+</div>

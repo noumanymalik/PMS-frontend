@@ -1,0 +1,250 @@
+﻿@page
+@addTagHelper*,Microsoft.AspNetCore.Mvc.TagHelpers
+
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+
+@model PMS.UI.Pages.Shedules.ImportRotaModel
+@{
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+	var pageSize = appSettings.Value.DefaultPageSize;
+}
+
+@section HeadBlock {
+    <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+    <link href="~/lib/select2-bootstrap-5-theme/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+    <link href="~/lib/bootstrap-daterangepicker/daterangepicker.min.css" rel="stylesheet">
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+
+                <div class="table-title p-2 me-1 mb-1">
+                    <div class="row align-items-center">
+                        <div class="col-12">
+                            <h4 class="mb-0">Import Rota</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-filter">
+                    <div class="mb-3">
+                        <nav class="navbar navbar-light p-0" style="background-color: transparent;">
+
+                            <form method="post" enctype="multipart/form-data" class="w-100">
+
+                                <div class="row g-2 align-items-end">
+
+                                    <!-- File Upload -->
+                                    <div class="col-md-6 col-lg-4">
+                                        <label class="form-label">Select File</label>
+                                        <input type="file" name="postedFile" class="form-control" />
+                                    </div>
+
+                                    <!-- Upload Button -->
+                                    <div class="col-md-auto">
+                                        <button type="submit"
+                                                asp-page-handler="Upload"
+                                                class="btn btn-primary w-100">
+                                            Upload
+                                        </button>
+                                    </div>
+
+                                    <!-- Show Button -->
+                                    <div class="col-md-auto">
+                                        <button type="button"
+                                                id="show-btn"
+                                                class="btn btn-primary w-100">
+                                            Show
+                                        </button>
+                                    </div>
+
+                                    <!-- Save Button -->
+                                    <div class="col-md-auto">
+                                        <button type="button"
+                                                id="save-btn"
+                                                class="btn btn-primary w-100">
+                                            Save
+                                        </button>
+                                    </div>
+
+                                </div>
+
+                            </form>
+
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Modal -->
+                <div class="modal fade" id="importModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title">Import File</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <input type="file" class="form-control" />
+                            </div>
+
+                            <div class="modal-footer">
+                                <button class="btn btn-success" id="fileInput">Upload</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tblRota">
+
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Employee ID</th>
+                                <th>Employee Name</th>
+                                <th style="display:none;">Shift ID</th>
+                                <th>Shift</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="table-body">
+                        </tbody>
+
+                    </table>
+                </div>
+
+                <div class="clearfix"></div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/lib/datatables.net-bs5/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+    <script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+    <script type="text/javascript" src="~/lib/bootstrap-daterangepicker/daterangepicker.min.js"></script>
+
+    <script type="text/javascript">
+        $('a[href="/Shedules/ImportRota"]').addClass('active');
+
+        $(document).on('click', '#show-btn', function (event) {
+            event.preventDefault();
+            $('#tblRota').DataTable({
+                processing: true,
+                serverSide: false,
+                paging: false,
+                // destroy: true,
+                // processing: true,
+                // serverSide: true,
+                // paging: false,
+                // info: false,
+                // ordering: false,
+                // searching: false,
+                // autoWidth: false,
+                // lengthChange: false,
+                ajax: {
+                    url: '/Shedules/ImportRota?handler=LoadData',
+                    type: 'GET',
+                    dataSrc: function (json) {
+
+                        //console.log("RESPONSE:", json);
+
+                        if (!json) return [];
+                        if (Array.isArray(json)) return json;
+                        if (json.data && Array.isArray(json.data)) {
+                            return json.data;
+                        }
+
+                        return [];
+                    }
+                },
+                columns: [
+                    {
+                        data: '#', sortable: true, width: "5%",
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    { data: 'Date' },
+                    { data: 'EmplyeeID' },
+                    { data: 'Names' },
+                    {
+                        data: 'ShiftID',
+                        visible: false
+                    },
+                    { data: 'Shift' }
+
+                ]
+            });
+
+        });
+
+        // save
+        var apiEndpoint = '@apiEndpoint' + 'Shedule';
+
+        $(document).on('click', '#save-btn', function (event) {
+            event.preventDefault();
+
+            var table = $('#tblRota').DataTable();
+            var data = [];
+
+            $.blockUI({ baseZ: 1001, message: '<h1>Saving Rota ...</h1>' });
+
+            table.rows().every(function () {
+                var row = this.data();
+
+                data.push({
+                    EmployeeCode: row.EmplyeeID,
+                    ShiftCode: row.ShiftID,
+                    calenderDate: moment(row.Date).format('YYYY-MM-DD HH:mm:ss.SSSSSSS')
+                });
+            });
+
+            // console.log("Sending to API:", data);
+            debugger
+            $.ajax({
+                type: 'POST',
+                url: apiEndpoint,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify({rotas : data}),
+
+                success: function (data) {
+                    $.unblockUI();
+                    if (data.succeeded) {
+                        toastr.success(data.messages[0]);
+                    }
+                    else {
+                        toastr.error(data.message);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.unblockUI();
+                    var errors = JSON.parse(jqXHR.responseText).errors;
+                    $.each(jqXHR.responseJSON.errors, function (field, message) {
+                        toastr.error(message);
+                    });
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+        });
+
+    </script>
+}

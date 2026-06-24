@@ -1,0 +1,91 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+
+@model PermissionsModel
+@{
+    ViewData["Title"] = "User Permissions";
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var pageSize = appSettings.Value.DefaultPageSize;
+}
+
+<div class="page-header">
+    <div class="page-title">
+        <h4>@ViewData["Title"]</h4>
+        <h6>Manage User Permissions</h6>
+    </div>
+
+    <div class="row">
+        <form asp-page-handler="Search" method="post">
+            <div class="col-lg-12 d-grid gap-2 d-md-flex justify-content-md-end">
+
+                <select id="searchboxInput" class="col-lg-12 col-sm-12 col-12 userRoles">
+                    <option value="0">Choose Role</option>
+                </select>
+
+                <button id="btnSearchData" class="input-group-text shadow-none px-4 btn btn-dark"><i class="fa fa-search"></i></button>
+            </div>
+        </form>
+    </div>
+</div>
+<input name="_RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+<input type="hidden" id="redirectToListing" value="@Url.Page("/Users/Index")" />
+
+<form method="post" id="frmPermissions">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+
+                    <div class="row clearfix">
+                        <div class="table-responsive mb-3">
+                            <table class="table table-striped table-bordered permission-table" cellpadding="0" cellspacing="0">
+                                <thead class="table-light">
+                                    <tr class="heading">
+                                        <th class="w-10">#</th>
+                                        <th class="w-80">Permission Name</th>
+                                        <th class="w-10">Access</th>
+                                    </tr>
+                                </thead>
+                                <tr class="prototype-row d-none">
+
+                                    <td><input type="number" name="pId[]" class="form-control pId" value="0" /></td>
+                                    <td><input type="text" name="Permission[]" class="form-control name" value="" /></td>
+                                    <td class="nav justify-content-center">
+                                        <input type="checkbox" id="chkAccess" name="access[]" class="form-check-input form-check-input-lg fs-4 access">
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
+                    </div>
+
+                    <div class="col-lg-12 d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary submit-btn me-2">Submit</button>
+                        <a href="javascript:void(0);" class="btn btn-secondary">Cancel</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+    <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+
+    <script src="~/js/permissions.js" asp-append-version="true"></script>
+
+
+    <script type="text/javascript">
+
+        $('a[href="/Roles/Permissions"]').addClass('active');
+        var apiEndpoint = '@apiEndpoint';
+
+    </script>
+}
+

@@ -1,0 +1,111 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+
+@model PMS.UI.Pages.Scorecard.IndexModel
+@{
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var pageSize = appSettings.Value.DefaultPageSize;
+}
+
+@section HeadBlock {
+    <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+    <link href="~/lib/select2-bootstrap-5-theme/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+    <link href="~/lib/bootstrap-daterangepicker/daterangepicker.min.css" rel="stylesheet">
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+
+                <div class="table-title p-2 me-1 mb-1">
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-6 col-xs-8">
+                                <h4>Export Score Card Documents</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-container">
+                    <button id="btnOpenPdf1" class="btn btn-primary">Score Card Sales Executive</button>
+                    <button id="btnOpenPdf2" class="btn btn-primary">Score Card Supervisor</button>
+                    <button id="btnOpenPdf3" class="btn btn-primary">Score Card Trainer</button>
+                    <button id="btnOpenPdf4" class="btn btn-primary">Score Card Lead Supervisor</button>
+                </div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/lib/datatables.net-bs5/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+    <script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+    <script type="text/javascript" src="~/lib/bootstrap-daterangepicker/daterangepicker.min.js"></script>
+
+    <script type="text/javascript">
+        $('a[href="/Scorecard"]').addClass('active');
+
+        $('#btnOpenPdf1').click(function () {
+            window.open('?handler=SCViewPdf1', '_blank');
+        });
+
+        $('#btnOpenPdf2').click(function () {
+            window.open('?handler=SCViewPdf2', '_blank');
+        });
+
+        $('#btnOpenPdf3').click(function () {
+            window.open('?handler=SCViewPdf3', '_blank');
+        });
+
+        $('#btnOpenPdf4').click(function () {
+            window.open('?handler=SCViewPdf4', '_blank');
+        });
+
+        //  $('#btnOpenPdf').click(function () {
+        //     $.ajax({
+        //         url: '?handler=DownloadPdf',
+        //         type: 'GET',
+        //         xhrFields: {
+        //             responseType: 'blob' // important
+        //         },
+        //         success: function (data) {
+        //             var blob = new Blob([data], { type: 'application/pdf' });
+        //             var url = window.URL.createObjectURL(blob);
+
+        //             var a = document.createElement('a');
+        //             a.href = url;
+        //             a.download = 'sample.pdf'; // file name
+        //             document.body.appendChild(a);
+        //             a.click();
+
+        //             a.remove();
+        //             window.URL.revokeObjectURL(url);
+        //         }
+        //     });
+        // });
+
+
+    </script>
+}
+
+    
+    
+    
+    
+    
+    
+    
+
+
+

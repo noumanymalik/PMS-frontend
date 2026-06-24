@@ -1,0 +1,181 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+
+@model PMS.UI.Pages.Employees.HierarchyModel
+
+@{
+    ViewData["Title"] = "Employee Hierarchy";
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+}
+
+@using System.Security.Claims;
+@{
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    .org-tree {
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        padding: 20px;
+    }
+
+    .node {
+        margin-left: 20px;
+        position: relative;
+    }
+
+    .node-header {
+        cursor: pointer;
+        padding: 6px 10px;
+        display: inline-block;
+        border-radius: 6px;
+        background: #f1f3f5;
+        margin: 3px 0;
+    }
+
+        .node-header:hover {
+            background: #e9ecef;
+        }
+
+    .toggle {
+        font-weight: bold;
+        margin-right: 6px;
+        color: #333;
+        width: 16px;
+        display: inline-block;
+    }
+
+    .designation {
+        color: #666;
+        font-size: 12px;
+        margin-left: 22px;
+        margin-bottom: 6px;
+    }
+
+    .children {
+        margin-left: 20px;
+        border-left: 1px dashed #ccc;
+        padding-left: 10px;
+    }
+
+    .collapsed > .children {
+        display: none;
+    }
+</style>
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+
+                <div class="table-title p-2 me-1 mb-1">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <h4>Employee Hierarchy</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="orgChart" class="org-tree"></div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+
+    <script type="text/javascript">
+        $('a[href="/Employee/Hierarchy"]').addClass('active');
+        var apiEndpoint = '@apiEndpoint';
+        var employeeId = '@employeeId';
+
+        $(document).ready(function () {
+            loadTree();
+        });
+
+        function loadTree() {
+            $.ajax({
+                url: apiEndpoint + 'Employee/GetByEmployeeIdHierarchy?EmployeeId=' + employeeId,
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                headers: {
+                        Authorization: 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                success: function (res) {
+
+                    if (res && res.succeeded && res.data) {
+
+                        let root = Array.isArray(res.data) ? res.data : [res.data];
+
+                        $("#orgChart").empty();
+
+                        root.forEach(node => {
+                            $("#orgChart").append(renderNode(node));
+                        });
+                    }
+                },
+                error: function () {
+                    $("#orgChart").html("<p>Failed to load hierarchy</p>");
+                }
+            });
+        }
+
+        function renderNode(node) {
+
+            let hasChildren = node.children && node.children.length > 0;
+
+            let html = `
+                <div class="node ${hasChildren ? '' : 'leaf'}">
+
+                    <div class="node-header">
+                        <span class="toggle">${hasChildren ? '▶' : ''}</span>
+                        <strong>${node.name}</strong>
+                    </div>
+
+                    <div class="designation">${node.designation}</div>
+            `;
+
+            if (hasChildren) {
+                html += `<div class="children">`;
+
+                node.children.forEach(child => {
+                    html += renderNode(child);
+                });
+
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            return html;
+        }
+
+        // Click handler (event delegation)
+        $(document).on("click", ".node-header", function () {
+
+            let node = $(this).closest(".node");
+            let children = node.children(".children");
+            let toggle = $(this).find(".toggle");
+
+            if (children.length === 0) return;
+
+            node.toggleClass("collapsed");
+
+            if (node.hasClass("collapsed")) {
+                toggle.text("▶");
+            } else {
+                toggle.text("▼");
+            }
+        });
+
+    </script>
+
+}

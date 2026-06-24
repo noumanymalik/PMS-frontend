@@ -1,0 +1,71 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+
+@model PMS.UI.Pages.Authentication.LoginModel
+@{
+	ViewData["Title"] = "Login";
+	var apiEndpoint = appSettings.Value.ApiEndpoint;
+}
+
+@{
+	Layout = "_LoginLayout";
+}
+
+<section class="bg-light py-3 py-md-5">
+	<div class="container">
+		<div class="row justify-content-center">
+			@* <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5 col-xxl-4">  *@
+			<div class="col-12 col-sm-10 col-md-8 col-lg-8 col-xl-6 col-xxl-5">
+
+				<div class="card border border-light-subtle rounded-3 shadow-sm">
+					<div class="card-body p-3 p-md-4 p-xl-5">
+						<div class="text-center mb-3">
+							<a href="#!">
+								<img src="~/images/icons/logoBig.png" alt="" width="400" height="50">
+							</a>
+						</div>
+						<h2 class="fs-6 fw-normal text-center text-secondary mb-4">Sign in to your account</h2>
+						<form method="post" id="frmLoginDetail">
+							<div asp-validation-summary="ModelOnly" class="fs-6 fw-normal text-center text-bg-custom-danger mb-4" text-danger"></div>
+							<input name="IsValid" type="hidden" value="@ViewData.ModelState.IsValid.ToString()" />
+
+							<div class="row gy-2 overflow-hidden">
+								<div class="col-12">
+									<div class="form-floating mb-3">
+										<input asp-for="login.Email" type="email" class="form-control" name="email" id="email" placeholder="name@example.com" required>
+										@* <input asp-for="login.Email" type="email" class="form-control" placeholder="name@example.com" required> *@
+										<label asp-for="login.Email" class="form-label">Email</label>
+									</div>
+								</div>
+								<div class="col-12">
+									<div class="form-floating mb-3">
+										<input asp-for="login.Password" type="password" class="form-control" name="password" id="password" value="" placeholder="Password" required>
+										@* <input asp-for="login.Password" type="password" class="form-control" value="" placeholder="Password" required> *@
+										<label asp-for="login.Password" class="form-label">Password</label>
+									</div>
+								</div>
+								<div class="col-12">
+									<div class="d-grid my-3">
+										<button asp-page-handler="Login" type="submit" value="Post" class="btn btn-primary btn-lg">Log in</button>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+@section ScriptsBlock {
+	<partial name="_ValidationScriptsPartial" />
+
+	<script type="text/javascript">
+		var apiEndpoint = '@apiEndpoint' + 'Users/Login';
+	</script>
+}
+

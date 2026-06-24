@@ -1,0 +1,258 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+
+@model PMS.UI.Pages.Leaves.EmployeeStatusModel
+@{
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var pageSize = appSettings.Value.DefaultPageSize;
+}
+
+@using System.Security.Claims;
+@{
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+@section HeadBlock {
+    <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+}
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <div class="table-title p-2 me-1 mb-1">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <h4>Employee Leaves Status</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <form>
+
+                    <div class="row g-3 mb-3">
+
+                        <div class="col-md-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" id="txtName" class="form-control" readonly>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Employee Code</label>
+                            <input type="text" id="txtEmployeeCode" class="form-control" readonly>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Date of Joining</label>
+                            <input type="text" id="txtDateOfJoining" class="form-control" readonly>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Date of Permanent</label>
+                            <input type="text" id="txtDateOfPermanent" class="form-control" readonly>
+                        </div>
+
+                    </div>
+
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-md-6">
+                            <label class="form-label">Available Annual Leaves</label>
+                            <input type="text" id="txtAnnualLeaves" class="form-control" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Available Casual Leaves</label>
+                            <input type="text" id="txtCasualLeaves" class="form-control" readonly>
+                        </div>
+
+                    </div>
+
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-bordered align-middle" id="tblLeaves">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Identification No.</th>
+                                <th>From Date</th>
+                                <th>To Date</th>
+                                <th>No Of Days</th>
+                                <th>Leave Type</th>
+                                <th>Approval</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="table-body">
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/lib/datatables.net-bs5/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+    <script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+
+    <script type="text/javascript">
+         $('a[href="/Leaves/EmployeeStatus"]').addClass('active');
+
+        var apiEndpoint = '@apiEndpoint';
+        var employeeId = '@employeeId';
+
+        $(document).ready(function () {
+            loadForm();
+            loadData();
+        });
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+
+            const date = new Date(dateString);
+
+            return (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
+                   date.getDate().toString().padStart(2, '0') + '/' +
+                   date.getFullYear();
+        }
+
+
+        function loadForm() {
+
+            $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'Leaves/GetLeaveStatus?EmployeeId=' + employeeId,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (data) {
+
+                    $('#txtName').val(data.name || '');
+                    $('#txtEmployeeCode').val(data.code || '');
+
+                    $('#txtDateOfJoining').val(formatDate(data.joiningDate));
+                    $('#txtDateOfPermanent').val(formatDate(data.permanentDate));
+
+                    $('#txtAnnualLeaves').val(data.availableAnuualLeaves || 0);
+                    $('#txtCasualLeaves').val(data.availableCasualleaves || 0);
+                }
+            });
+        }
+
+        var $dg = {};
+        var oTable;
+
+         function loadData() {
+
+            // destroy if already exists
+            if ($.fn.DataTable.isDataTable('#tblLeaves')) {
+                $('#tblLeaves').DataTable().destroy();
+            }
+
+             oTable = $('#tblLeaves').DataTable(getDtOptions());
+        }
+
+         function getDtOptions() {
+            return {
+                destroy: true,
+                processing: true,
+                serverSide: true,
+                ordering: false,
+                searching: false,
+                autoWidth: false,
+                lengthChange: false,
+                pageLength: @pageSize,
+
+                ajax: {
+                    url: apiEndpoint + 'Leaves/GetEmployeeLeavesById',
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    headers: {
+                        'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                    },
+                    data: function (data, settings) {
+                        var api = new $.fn.dataTable.Api(settings);
+                        var pageIndex = api.page.info().page + 1;
+
+                        return {
+                            PageIndex: pageIndex,
+                            PageSize: @pageSize,
+                            EmployeeId: employeeId,
+                            ApprovalTypeId: 2
+                        };
+                    },
+                    dataSrc: function (json) {
+                        var totalRows = json.rowCount;
+                        json.recordsTotal = totalRows;
+                        json.recordsFiltered = totalRows;
+                        return json.data;
+                    }
+                },
+
+                createdRow: function (row, data) {
+                    $(row).attr('data-id', data.id);
+                },
+
+                columns: [
+                    {
+                        data: '#',
+                        title: '#',
+                        width: "3%",
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        data: 'createDate',
+                        width: '5%',
+                        render: function (data) {
+                            return moment(data).format('MM/DD/YYYY');
+                        }
+                    },
+                    { data: 'code', width: '5%' },
+                    {
+                        data: 'fromDate',
+                        width: '5%',
+                        render: function (data) {
+                            return moment(data).format('MM/DD/YYYY');
+                        }
+                    },
+                    {
+                        data: 'toDate',
+                        width: '5%',
+                        render: function (data) {
+                            return moment(data).format('MM/DD/YYYY');
+                        }
+                    },
+                    { data: 'noOfDays', width: '5%' },
+                    { data: 'leaveType', width: '10%' },
+                    { data: 'approvalStatus', width: '5%' },
+                    { data: 'reason', width: '35%' },
+                ],
+
+                language: {
+                    searchPlaceholder: "Search...",
+                    search: "",
+                    lengthMenu: "_MENU_ &nbsp;items/page"
+                }
+            };
+        }
+
+    </script>
+}

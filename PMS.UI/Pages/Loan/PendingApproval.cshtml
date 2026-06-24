@@ -1,0 +1,428 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+
+@model PMS.UI.Pages.Loan.PendingApprovalModel
+@{
+    ViewData["Title"] = "Loan Application Form";
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+}
+
+@using System.Security.Claims;
+@{
+	var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+@section HeadBlock {
+	<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+}
+
+<div class="page-header">
+	<div class="page-title">
+		<h4>@ViewData["Title"]</h4>
+		<h6>Approve Loan</h6>
+	</div>
+</div>
+
+<style>
+    #frmLoanDetail .mb-2 {
+        margin-bottom: .5rem !important;
+    }
+
+    #frmLoanDetail label {
+        margin-bottom: 2px;
+        font-weight: 500;
+    }
+
+    #frmLoanDetail .form-control {
+        padding-top: .35rem;
+        padding-bottom: .35rem;
+    }
+
+    #frmLoanDetail textarea {
+        resize: vertical;
+    }
+
+    .btn-custom {
+        background-color: #1E2D5B;
+        border-color: #1E2D5B;
+        color: #fff;
+    }
+
+        .btn-custom:hover,
+        .btn-custom:focus {
+            background-color: #172347;
+            border-color: #172347;
+            color: #fff;
+        }
+</style>
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<input type="hidden" id="redirectToListing" value="@Url.Page("PendingApprovalList")" />
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="SaveLoan" asp-controller="Loan"  method="post"  id="frmLoanDetail">
+                <input type="hidden" asp-for="LoanId" value="@Model.LoanId" />
+
+                <div class="mb-2">
+                    <label class="control-label">Apply Date</label>
+                    <input type="text"
+                           id="LoanDate"
+                           name="LoanDate"
+                           class="form-control create-date"
+                           readonly />
+                </div>
+
+                <div class="mb-2">
+                    <label class="control-label">Employee Name</label>
+                    <input type="text"
+                           id="EmployeeName"
+                           name="EmployeeName"
+                           class="form-control emp-name"
+                           readonly />
+                </div>
+
+                <div class="mb-2">
+                    <label class="control-label">Joining Date</label>
+                    <input type="text"
+                           id="JoiningDate"
+                           name="JoiningDate"
+                           class="form-control join-date"
+                           readonly />
+
+                    <small id="joiningDateWarning"
+                           class="text-danger"
+                           style="display:none;">
+                        Joining date is less than three months.
+                    </small>
+                </div>
+
+                <div class="mb-2">
+                    <label class="control-label">Contact No</label>
+                    <input type="text"
+                           id="ContactNo"
+                           name="ContactNo"
+                           class="form-control cont-no"
+                           readonly />
+                </div>
+
+                <div class="mb-2">
+                    <label class="control-label">Address</label>
+                    <textarea id="Address"
+                              name="Address"
+                              class="form-control address"
+                              rows="2"
+                              readonly></textarea>
+                </div>
+
+                <div class="mb-2">
+                    <label class="control-label">Designation</label>
+                    <input type="text"
+                           id="Designation"
+                           name="Designation"
+                           class="form-control designation"
+                           readonly />
+                </div>
+
+                <div class="mb-2">
+                    <label class="control-label">Loan Amount</label>
+                    <input type="text"
+                           id="Amount"
+                           name="Amount"
+                           class="form-control loan-amt"
+                           readonly />
+                </div>
+
+                <div class="mb-2">
+                    <label class="control-label">Installments</label>
+                    <input type="text"
+                           id="Installment"
+                           name="Installment"
+                           class="form-control inst-Type"
+                           readonly />
+                </div>
+
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+
+                    <div class="d-flex align-items-center gap-3">
+                        <label class="mb-0">
+                            Any loan disbursals within the preceding 90 days?
+                        </label>
+
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="Loan90DaysDisplay"
+                                   value="1"
+                                   id="rblYes"
+                                   disabled />
+                            <label class="form-check-label" for="rblYes">
+                                Yes
+                            </label>
+                        </div>
+
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="Loan90DaysDisplay"
+                                   value="2"
+                                   id="rblNo"
+                                   disabled />
+                            <label class="form-check-label" for="rblNo">
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="LastLoanDate" class="mb-0">
+                            Last Loan Apply Date
+                        </label>
+
+                        <input type="text"
+                               id="LastLoanDate"
+                               name="LastLoanDate"
+                               class="form-control last-Loan"
+                               style="width:180px;"
+                               readonly />
+                    </div>
+
+                </div>
+
+                <small id="loan90DaysWarning"
+                       class="text-danger"
+                       style="display:none;">
+                    Already taken a loan within the last 90 days.
+                </small>
+
+
+                <div class="mb-2">
+                    <label class="control-label">Reason</label>
+                    <textarea id="Reason"
+                              name="Reason"
+                              class="form-control reason"
+                              rows="2"
+                              readonly></textarea>
+                </div>
+
+                <div class="mt-3">
+                    <button type="button" id="btnApprove" class="btn btn-custom">
+                        Approve
+                    </button>
+
+                    <button type="button" id="btnReject" class="btn btn-custom">
+                        Reject
+                    </button>
+
+                    <button type="button" id="btnCancel" class="btn btn-custom">
+                        Cancel
+                    </button>
+                </div>
+
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+    <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+    <script type="text/javascript" src="~/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="~/lib/jquery-mask/jquery.mask.min.js"></script>
+
+    <script type="text/javascript">
+        $('a[href="/Loan/PendingApprovalList"]').addClass('active');
+
+        var apiEndpoint = '@apiEndpoint';
+        var employeeId = '@employeeId';
+
+        $(document).ready(function () {
+            loadForm($('#LoanId').val());
+        });
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+
+            const date = new Date(dateString);
+
+            return (date.getMonth() + 1).toString().padStart(2, '0') + ' / ' +
+                   date.getDate().toString().padStart(2, '0') + ' / ' +
+                   date.getFullYear();
+        }
+
+        function loadForm(id) {
+            $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'Loan/GetLoanDetailbyId?Id=' + id,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (response) {
+
+                    $('.create-date').val(formatDate(response.data.createDate) || '');
+                    $('.emp-name').val(response.data.employeeName || '');
+                    $('.join-date').val(formatDate(response.data.joiningDate) || '');
+                    $('.cont-no').val(response.data.contactNo || '');
+                    $('.address').val(response.data.address || '');
+                    $('.designation').val(response.data.designation || '');
+                    $('.loan-amt').val(response.data.amount || '');
+                    $('.inst-Type').val(response.data.installment || '');
+                    $('.last-Loan').val(formatDate(response.data.lastLoanDate) || '');
+                    $('.reason').val(response.data.reason || '');
+
+                    checkJoiningDate();
+
+                    if (response.data.ninetyDaysLoan == 1) {
+                        $('#rblYes').prop('checked', true);
+                        ShowLoan90Days();
+                    }
+                    else if (response.data.ninetyDaysLoan == 2) {
+                        $('#rblNo').prop('checked', true);
+                    }
+                }
+            });
+        }
+
+        function checkJoiningDate() {
+
+        var dateText = $('.join-date').val()?.trim();
+
+            if (dateText) {
+
+                var joiningDate = new Date(dateText);
+                var today = new Date();
+
+                var months =
+                    (today.getFullYear() - joiningDate.getFullYear()) * 12 +
+                    (today.getMonth() - joiningDate.getMonth());
+
+                if (months < 3) {
+                    $('#joiningDateWarning').show();
+                }
+            }
+        }
+
+        function ShowLoan90Days() {
+
+           $('#loan90DaysWarning').show();
+        }
+
+        $(document).on('click', '#btnApprove', function (e) {
+            e.preventDefault();
+
+            const recordId = $('#LoanId').val();
+
+            Swal.fire({
+                title: "Approve this request?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, approve"
+            }).then((result) => {
+
+                if (!result.isConfirmed) return;
+
+                $.blockUI({ baseZ: 1055, message: '<h5>Processing...</h5>' });
+
+                $.ajax({
+                    type: 'PUT',
+                    url: apiEndpoint + 'Loan/' + recordId,
+                    contentType: 'application/json',
+                    headers: {
+                     'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                    },
+                    data: JSON.stringify({
+                        id: recordId,
+                        loanApproveStatusId: 2
+                    }),
+
+                    success: function (data) {
+                        if (data.succeeded) {
+                            toastr.success(data.messages[0]);
+                            goBack();
+                        } else {
+                            toastr.error(data.messages[0]);
+                        }
+                    },
+
+                    error: function () {
+                        toastr.error('Something went wrong');
+                    },
+
+                    complete: function () {
+                        $.unblockUI();
+                    }
+                });
+            });
+        });
+
+        $(document).on('click', '#btnReject', function (e) {
+            e.preventDefault();
+
+            const recordId = $('#LoanId').val();
+
+            Swal.fire({
+                title: "Reject this request?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, reject"
+            }).then((result) => {
+
+                if (!result.isConfirmed) return;
+
+                $.blockUI({ baseZ: 1055, message: '<h5>Processing...</h5>' });
+
+                $.ajax({
+                    type: 'PUT',
+                    url: apiEndpoint + 'Loan/' + recordId,
+                    contentType: 'application/json',
+                    headers: {
+                     'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                    },
+                    data: JSON.stringify({
+                        id: recordId,
+                        loanApproveStatusId: 4
+                    }),
+
+                    success: function (data) {
+                        if (data.succeeded) {
+                            toastr.success(data.messages[0]);
+                            goBack();
+                        } else {
+                            toastr.error(data.messages[0]);
+                        }
+                    },
+
+                    error: function () {
+                        toastr.error('Something went wrong');
+                    },
+
+                    complete: function () {
+                        $.unblockUI();
+                    }
+                });
+            });
+        });
+
+        $(document).on('click', '#btnCancel', function (e) {
+            e.preventDefault();
+
+            console.log('Cancelled');
+            goBack();
+        });
+     
+        function goBack() {
+            window.location.href = $('#redirectToListing').val();
+        }
+
+    </script>
+
+}

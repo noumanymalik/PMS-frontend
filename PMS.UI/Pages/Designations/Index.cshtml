@@ -1,0 +1,225 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+
+@model PMS.UI.Pages.Designations.IndexModel
+@{
+    ViewData["Title"] = "Designation";
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var pageSize = appSettings.Value.DefaultPageSize;
+    var addNewDesignationPermission = HasPermission.Get("Add_New_Designation", HttpContext);
+}
+
+@section HeadBlock {
+    <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+}
+
+<div class="page-header">
+    <div class="page-title">
+        <h4>@ViewData["Title"]</h4>
+@*         <h6>Manage Product Categories</h6> *@
+    </div>
+
+        <input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+    @if (addNewDesignationPermission)
+    {
+        <div class="page-btn">
+            <a data-toggle="ajax-modal-des" data-url="@Url.Page("Index", "CreateNewDesignation")" class="btn btn-success text-white btn btn-added">
+            <i class="fa fa-plus me-2" data-toggle="tooltip" data-placement="left" title="Add New"></i>
+            Add New
+        </a>
+    </div>
+    }
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+
+                <div class="table-title p-2 me-1 mb-1">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <h4>List of Designation</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered" id="tblDesignations">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Code</th>
+                                <th>Departments</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-placeholder"></div>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/lib/datatables.net-bs5/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+
+    <script type="text/javascript">
+        $('a[href="/Designations"]').addClass('active');
+
+        $(document).ready(function () {
+        });
+
+        var apiEndpoint = '@apiEndpoint';
+
+        $(function () {
+            var modelPlaceholder = $('#modal-placeholder');
+
+            $('a[data-toggle="ajax-modal-des"]').on('click', function (event) {
+                event.preventDefault();
+                var url = $(this).data('url');
+
+                $.get(url).done(function (data) {
+
+                    modelPlaceholder.html(data);
+                    modelPlaceholder.find('.modal').modal('show');
+
+                    let $form = modelPlaceholder.find('#frmCreate');
+                    resetUnobtrusiveValidation($form);
+                });
+            });
+
+           modelPlaceholder.on('click', '.create-designation', function (event) {
+            event.preventDefault();
+            let $form = $(this).parents('.modal').find('form');
+            var actionUrl = apiEndpoint + 'Designation';
+            debugger
+            var formData = {
+                code: $('.designation-code').val(),
+                name: $('.designation-name').val(),
+            };
+
+            if ($form.validate().form()) {
+                $.blockUI({ baseZ: 1055, message: '<h1>Processing...</h1>' });
+
+                $.ajax({
+                    type: 'POST',
+                    url: apiEndpoint + 'Designation',
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    data: JSON.stringify(formData),
+                    headers: { 'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                    },
+                    success: function (data) {
+                        $.unblockUI();
+                        if (data.succeeded) {
+                            toastr.success(data.messages[0]);
+                            window.setInterval(goBack, 1000);
+                        }
+                        else {
+                            toastr.error(data.message);
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        $.unblockUI();
+                        var errors = JSON.parse(jqXHR.responseText).errors;
+                        $.each(jqXHR.responseJSON.errors, function (field, message) {
+                            toastr.error(message);
+                        });
+                    }
+                }).done(function (result) {
+                    console.log(result);
+                });
+            }
+        });
+
+        });
+
+        function goBack() {
+            window.location.href = $('#redirectToListing').val();
+        }
+
+        var $dg = {};
+        var oTable;
+
+        $(function () {
+           loadData();
+        });
+
+        function loadData() {
+            oTable = $('#tblDesignations').DataTable({
+                destroy: true,
+                processing: true,
+                serverSide: true,
+                ordering: false,
+                searching: false,
+                autoWidth: false,
+                lengthChange: false,
+                pageLength: @pageSize,
+                ajax: {
+                    url: apiEndpoint + 'Designation/GetList',
+                    type: 'Get',
+                    contentType: 'application/json; charset=utf-8',
+                    headers: {
+                        Authorization: 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val()
+                    },
+                    data: (data, settings) => {
+                        // debugger;
+                        var api = new $.fn.dataTable.Api(settings);
+                        var pageIndex = api === undefined ? 1 : api.page.info().page + 1;
+                        return { PageIndex: pageIndex, PageSize: @pageSize };
+                    },
+                    dataSrc: function (json) {
+                        var totalRows = json.rowCount;
+                        json.recordsTotal = totalRows;
+                        json.recordsFiltered = totalRows;
+                        return json.data;
+                    }
+                },
+                createdRow: function (row, data, dataIndex) {
+                    $(row).attr('data-id', data.id);
+                },
+                columns: [
+                    {
+                        data: '#',
+                        title: '#',
+                        sortable: false, width: "5%",
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    { data: 'code', name: 'code', defaultContent: 'N/A', width: '10%', class: 'text-right' },
+                    { data: 'name', defaultContent: 'N/A', width: '75%' },
+                    // {
+                    //     data: 'id',
+                    //     title: 'Action(s)',
+                    //     width: '20%',
+                    //     render: function (data, type, row, meta) {
+                    //         return '<a data-id=' + data + ' href=' + '@Url.Page("Edit")?Id=' + data + ' class="btn btn-sm btn-outline-primary edit me-2" href="#"><i class="fas fa-pencil"></i>Edit</a>' +
+                    //                '<a data-id=' + data + ' href=' + '@Url.Page("Details")?Id=' + data + ' class="btn btn-sm btn-outline-success details me-2" href="#"><i class="fas fa-eye"></i>Details</a>' +
+                    //             '<a data-id=' + data + ' onclick="confirmation(event, ' + data + ')" class="btn btn-sm btn-outline-danger confirm-text me-2"><i class="fas fa-trash" data-toggle="tooltip" data-placement="left" title="Delete"></i>Delete</a>';
+                    //     }
+                    // }
+                ],
+                language: {
+                    searchPlaceholder: "Search...",
+                    search: "",
+                    lengthMenu: "_MENU_ &nbsp;items/page"
+                }
+            });
+        }
+
+
+    </script>
+
+}
