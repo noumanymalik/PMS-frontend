@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PMS.UI.Models.ViewModels.Employee;
 
-namespace PMS.UI.Pages.Employees
+namespace PMS.UI.Pages.CorrectiveActions
 {
-    public class CorrectiveActionModel : PageModel
+    public class CreateModel : PageModel
     {
         private readonly ILogger<CreateModel> _logger;
-        public CorrectiveActionModel(ILogger<CreateModel> logger)
+        public CreateModel(ILogger<CreateModel> logger)
         {
             _logger = logger;
         }

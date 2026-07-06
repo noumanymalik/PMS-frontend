@@ -2,7 +2,7 @@
 @using Microsoft.Extensions.Options
 @using PMS.UI.Options
 @inject IOptions<AppSettings> appSettings
-@model PMS.UI.Pages.Employees.CorrectiveActionModel
+@model PMS.UI.Pages.CorrectiveActions.CreateModel
 @{
     ViewData["Title"] = "Employee Corrective Action";
     var apiEndpoint = appSettings.Value.ApiEndpoint;
@@ -26,7 +26,7 @@
 
 <input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
 
-<input type="hidden" id="redirectToListing" value="@Url.Page("EmployeeStatus")" />
+<input type="hidden" id="redirectToListing" value="@Url.Page("Index")" />
 
 <div class="row">
 	<div class="col-md-4">
@@ -91,7 +91,7 @@
 	<script type="text/javascript" src="~/lib/jquery-mask/jquery.mask.min.js"></script>
 
 	<script type="text/javascript">
-		$('a[href="/Employees/CorrectiveAction"]').addClass('active');
+		$('a[href="/CorrectiveActions"]').addClass('active');
 
 		var apiEndpoint = '@apiEndpoint';
 		var employeeId = '@employeeId';
@@ -203,10 +203,11 @@
 			});
 		});
 
-		// function goBack() {
-		// 	window.location.href = $('#redirectToListing').val();
-		// }
+		function goBack() {
+			window.location.href = $('#redirectToListing').val();
+		}
 
 	</script>
+	}
 
-}
+

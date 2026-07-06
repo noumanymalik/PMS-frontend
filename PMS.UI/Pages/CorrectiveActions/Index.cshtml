@@ -1,0 +1,229 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+@model PMS.UI.Pages.CorrectiveActions.IndexModel
+@{
+    ViewData["Title"] = "Corrective Action List";
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var pageSize = appSettings.Value.DefaultPageSize;
+}
+
+@section HeadBlock {
+    <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+}
+
+<div class="page-header">
+    <div class="page-title">
+@*         <h4>@ViewData["Title"]</h4> *@
+    </div>
+
+    <input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+@*     @if (addNewEmployeePermission)
+    { *@
+        <div class="page-btn">
+            <a class="btn btn-success text-white btn btn-added action-add">
+                <i class="fa fa-plus me-2" data-toggle="tooltip" data-placement="left" title="Add New"></i>
+                Add New
+            </a>
+        </div>
+@*     } *@
+
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+
+                <div class="table-title p-2 me-1 mb-1">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <h4>List of Corrective Actions</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-filter">
+
+                    <div class="table-top">
+                        <div class="search-set row">
+                            <div class="search-path col-sm-2 col-xm-6">
+                                <a class="btn btn-filter text-white me-1" id="filter_search">
+                                    <i class="fa fa-filter"></i>
+                                    <span><i class="fa fa-close fa-2x"></i></span>
+                                </a>
+                            </div>
+                            <div id="filter_inputs" class="col-sm-10 col-xm-6">
+                                <form asp-page-handler="Search" method="post">
+
+                                    <div class="row">
+                                        <div class="row col-sm-10">
+
+                                            <div class="filter-group col-sm-4 col-xs-6">
+                                                <label>Filter By</label>
+                                                <select class="form-select form-select-md shadow-none border-0 ddl-searchFilter">
+                                                    <option value="EmployeeCode">Employee Code</option>
+                                                    <option value="EmployeeName">Employee Name</option>
+                                                </select>
+                                            </div>
+                                            <div class="filter-group col-sm-4 col-xs-6">
+                                                <label>Keywords</label>
+                                                <input type="text" required asp-for="SearchTerm" class="form-control" placeholder="Enter Keywords?" />
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-sm-2 py-2">
+                                            <button id="btnSearchData" class="input-group-text shadow-none px-4 btn btn-dark"><i class="fa fa-search"></i></button>
+                                        </div>
+
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-bordered" id="tblCorrectiveActions">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Create Date</th>
+                                <th>Incident Date</th>
+                                <th>Employee ID</th>
+                                <th>Employee Name</th>
+                                <th>Action</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-body">
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <div class="clearfix"></div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/lib/datatables.net-bs5/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+    <script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+
+    <script type="text/javascript">
+        $('a[href="/CorrectiveActions"]').addClass('active');
+
+        $(document).ready(function () {
+        });
+
+        $('.action-add').on('click', function (e) {
+            window.location.href = '@Url.Page("Create")';
+        });
+
+        $('#btnSearchData').on('click', function (e) {
+            e.preventDefault();
+            loadData();
+        });
+
+        var $dg = {};
+        var oTable;
+
+        var apiEndpoint = '@apiEndpoint' + 'Employee';
+
+        $(async function () {
+                loadData();
+        });
+
+        var dtOptions = {
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            ordering: true, //false,
+            searching: false,
+            autoWidth: false,
+            lengthChange: false,
+            paging: true,
+            pageLength: @pageSize,
+            responsive: true,
+            //order: [[1, "asc"]],
+            ajax: {
+                url: apiEndpoint + '/GetCorrectiveActionList?OrderBy=id&OrderDirection=desc',
+                type: 'GET',
+                datatype: 'json',
+                contentType: 'application/json; charset=utf-8',
+                headers: {
+                        Authorization: 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                data: function (data, settings) {
+                    var api = new $.fn.dataTable.Api(settings);
+                    var searchFilter = $('.ddl-searchFilter option:selected').val();
+                    var searchTerm = $('#SearchTerm').val();
+                    var pageIndex = api === undefined ? 1 : api.page.info().page + 1;
+                    return { PageIndex: pageIndex, PageSize: @pageSize, Filter: searchFilter, SearchText: searchTerm };
+                },
+                //error: function (jqXHR, textStatus, errorThrown) { }
+                dataSrc: function (json) {
+                    var totalRows = json.rowCount;
+                    json.recordsTotal = totalRows;
+                    json.recordsFiltered = totalRows;
+                    return json.data;
+                }
+            },
+            createdRow: function (row, data, dataIndex) {
+                $(row).attr('data-id', data.id);
+                //$(row).attr('data-categoryid', data.categoryId);
+            },
+            columns: [
+                {
+                    data: '#', sortable: false, width: "5%",
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                        data: 'createDate',
+                        width: '10%',
+                        render: function (data) {
+                            return moment(data).format('MM/DD/YYYY');
+                        }
+                },
+                {
+                        data: 'incidentDate',
+                        width: '10%',
+                        render: function (data) {
+                            return moment(data).format('MM/DD/YYYY');
+                        }
+                },
+
+                { data: 'employeeCode', defaultContent: 'N/A', width: '10%' },
+                { data: 'employeeName', defaultContent: 'N/A', width: '15%' },
+                { data: 'action', defaultContent: 'N/A', width: '5%' },
+                { data: 'reason', defaultContent: 'N/A', width: '40%' }
+            ],
+            language: {
+                paginate: {
+                    previous: 'Prev',
+                },
+                processing: "Loading Data...",
+                zeroRecords: "No matching records found"
+            },
+        };
+
+        function loadData() {
+            oTable = $('#tblCorrectiveActions').dataTable(dtOptions);
+        }
+
+    </script>
+}
