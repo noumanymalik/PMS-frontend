@@ -1,0 +1,212 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+@model PMS.UI.Pages.Employees.CorrectiveActionModel
+@{
+    ViewData["Title"] = "Employee Corrective Action";
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+}
+
+@using System.Security.Claims;
+@{
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+@section HeadBlock {
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+}
+
+<div class="page-header">
+    <div class="page-title">
+        <h4>@ViewData["Title"]</h4>
+        <h6>Take Action</h6>
+    </div>
+</div>
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<input type="hidden" id="redirectToListing" value="@Url.Page("EmployeeStatus")" />
+
+<div class="row">
+	<div class="col-md-4">
+		<form method="post" id="frmCorrectiveActionDetail">
+			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+			<div class="form-group">
+				<label asp-for="CorrectiveAction.CreateDate" class="control-label"></label>
+				<input asp-for="CorrectiveAction.CreateDate"
+					   type="date"
+					   class="form-control datepicker" id="create-date"
+					   readonly />
+				<span asp-validation-for="CorrectiveAction.CreateDate" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="CorrectiveAction.IncidentDate" class="control-label"></label>
+				<input asp-for="CorrectiveAction.IncidentDate"
+					   type="date"
+					   class="form-control datepicker" id="inci-date"/>
+				<span asp-validation-for="CorrectiveAction.IncidentDate" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="CorrectiveAction.EmployeeId" class="control-label">Employee</label>
+				<select asp-for="CorrectiveAction.EmployeeId" class="form-control select2 ddl-Employees" id="emp-id">
+					<option value="0">Choose</option>
+				</select>
+				<span asp-validation-for="CorrectiveAction.EmployeeId" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="CorrectiveAction.ActionId" class="control-label">Corrective Action</label>
+				<select asp-for="CorrectiveAction.ActionId" class="form-control select2 actiontype" id="action-Type">
+					<option value="0">Choose</option>
+				</select>
+				<span asp-validation-for="CorrectiveAction.ActionId" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<div class="form-group">
+					<label asp-for="CorrectiveAction.Reason" class="control-label"></label>
+					<textarea asp-for="CorrectiveAction.Reason" class="form-control" id="action-reason" rows="2"></textarea>
+				</div>
+			</div>
+
+
+			<div class="form-group">
+				<input type="submit" value="Save" class="btn btn-primary" />
+			</div>
+
+		</form>
+	</div>
+</div>
+
+@section ScriptsBlock {
+	<partial name="_ValidationScriptsPartial" />
+	<script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+	<script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+	<script type="text/javascript" src="~/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
+	<script type="text/javascript" src="~/lib/jquery-mask/jquery.mask.min.js"></script>
+
+	<script type="text/javascript">
+		$('a[href="/Employees/CorrectiveAction"]').addClass('active');
+
+		var apiEndpoint = '@apiEndpoint';
+		var employeeId = '@employeeId';
+
+		$(document).ready(function () {
+			let today = new Date().toISOString().split('T')[0];
+			$('#create-date').val(today);
+			initEmployees();
+			loadActionType();
+		});
+
+		$('.ddl-Employees').on('change', function () {
+				var selectedId = $(this).val();
+				$('#emp-id').val(selectedId);
+				console.log(selectedId);
+		});
+
+		function initEmployees() {
+			return $.ajax({
+				type: 'GET',
+				url: apiEndpoint + 'Employee/GetAll',
+				dataType: 'json',
+				contentType: 'application/json; charset=utf-8',
+				headers: {
+					'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+				},
+				success: function (response) {
+
+					var result = response.data.map(function (item) {
+						return { id: item.id, text: item.name };
+					});
+
+					$('.ddl-Employees').select2({
+						data: result,
+						placeholder: 'Choose',
+						theme: 'bootstrap-5',
+						width: '100%'
+					});
+				}
+			});
+		}
+
+		function loadActionType() {
+			$.ajax({
+				type: 'GET',
+				url: apiEndpoint + 'Lookups/GetCorrectiveActionType',
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				headers: {
+					'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+				},
+				success: function (response) {
+
+					var data = response.data;
+					var $select = $('.actiontype');
+
+					$.each(data, function (key, item) {
+						$select.append('<option value=' + item.id + '>' + item.name + '</option>');
+					});
+				}
+			})
+		}
+
+		$('#frmCorrectiveActionDetail').on('submit', function (e) {
+			e.preventDefault();
+
+			if (!$('#frmCorrectiveActionDetail').valid()) {
+				return;
+			}
+			debugger
+			var formData = {
+				createDate: $('#create-date').val(),
+				incidentDate: $('#inci-date').val(),
+				employeeId: $('#emp-id').val(),
+				actionId: $('#action-Type').val(),
+				reason: $('#action-reason').val(),
+			};
+
+			$.blockUI({ baseZ: 1001, message: '<h1>Processing...</h1>' });
+
+			$.ajax({
+				type: 'POST',
+				url: apiEndpoint + 'Employee/CorrectiveAction',
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				data: JSON.stringify(formData),
+				headers: {
+					'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+				},
+				success: function (data) {
+					$.unblockUI();
+					if (data.succeeded) {
+						toastr.success(data.messages[0]);
+						window.setInterval(goBack, 1000);
+					}
+					else {
+						toastr.error(data.message);
+					}
+				},
+				error: function (jqXHR, textStatus, errorThrown) {
+					$.unblockUI();
+					var errors = JSON.parse(jqXHR.responseText).errors;
+					$.each(jqXHR.responseJSON.errors, function (field, message) {
+						toastr.error(message);
+					});
+				}
+			}).done(function (result) {
+				console.log(result);
+			});
+		});
+
+		// function goBack() {
+		// 	window.location.href = $('#redirectToListing').val();
+		// }
+
+	</script>
+
+}
