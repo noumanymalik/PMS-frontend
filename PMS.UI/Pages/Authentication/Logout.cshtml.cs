@@ -31,6 +31,8 @@ namespace PMS.UI.Pages.Authentication
             HttpContext.Session.SetString("Add_New_Designation", "");
 
             HttpContext.Session.SetString("Organizational_Chart", "");
+            HttpContext.Session.SetString("Corrective_Action", "");
+
             HttpContext.Session.SetString("Leave", "");
             HttpContext.Session.SetString("Apply_Leave", "");
             HttpContext.Session.SetString("Leave_Status", "");

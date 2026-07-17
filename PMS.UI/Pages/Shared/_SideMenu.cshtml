@@ -10,6 +10,7 @@
     var DepartmentPermission = HasPermission.Get("Department", context.HttpContext);
     var designationPermission = HasPermission.Get("Designation", context.HttpContext);
     var hierarchyPermission = HasPermission.Get("Hierarchy", context.HttpContext);
+    var correctiveActionPermission = HasPermission.Get("Corrective_Action", context.HttpContext);
     var leavePermission = HasPermission.Get("Leave", context.HttpContext);
     var applyLeavePermission = HasPermission.Get("Apply_Leave", context.HttpContext);
     var leaveStatusPermission = HasPermission.Get("Leave_Status", context.HttpContext);
@@ -75,7 +76,11 @@
                         {
                             <li><a asp-page="/Employees/Hierarchy">Hierarchy</a></li>
                         }
-                        <li><a asp-page="/CorrectiveActions/Index">Corrective Action</a></li>
+                        @if (correctiveActionPermission)
+                        {
+                            <li><a asp-page="/CorrectiveActions/Index">Corrective Action</a></li>
+                        }
+                        
                 </ul>
             </li>
             }

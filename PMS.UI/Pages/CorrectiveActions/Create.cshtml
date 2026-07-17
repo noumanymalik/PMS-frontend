@@ -51,6 +51,22 @@
 			</div>
 
 			<div class="form-group">
+				<label asp-for="CorrectiveAction.ValidFromDate" class="control-label"></label>
+				<input asp-for="CorrectiveAction.ValidFromDate"
+					   type="date"
+					   class="form-control datepicker" id="vfrom-date" />
+				<span asp-validation-for="CorrectiveAction.ValidFromDate" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="CorrectiveAction.ValidToDate" class="control-label"></label>
+				<input asp-for="CorrectiveAction.ValidToDate"
+					   type="date"
+					   class="form-control datepicker" id="vto-date" />
+				<span asp-validation-for="CorrectiveAction.ValidToDate" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
 				<label asp-for="CorrectiveAction.EmployeeId" class="control-label">Employee</label>
 				<select asp-for="CorrectiveAction.EmployeeId" class="form-control select2 ddl-Employees" id="emp-id">
 					<option value="0">Choose</option>
@@ -67,9 +83,17 @@
 			</div>
 
 			<div class="form-group">
+				<label asp-for="CorrectiveAction.ReasonId" class="control-label">Corrective Action Reason</label>
+				<select asp-for="CorrectiveAction.ReasonId" class="form-control select2 actionreason" id="action-reason">
+					<option value="0">Choose</option>
+				</select>
+				<span asp-validation-for="CorrectiveAction.ReasonId" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
 				<div class="form-group">
-					<label asp-for="CorrectiveAction.Reason" class="control-label"></label>
-					<textarea asp-for="CorrectiveAction.Reason" class="form-control" id="action-reason" rows="2"></textarea>
+					<label asp-for="CorrectiveAction.Remarks" class="control-label"></label>
+					<textarea asp-for="CorrectiveAction.Remarks" class="form-control" id="action-remarks" rows="2"></textarea>
 				</div>
 			</div>
 
@@ -101,6 +125,7 @@
 			$('#create-date').val(today);
 			initEmployees();
 			loadActionType();
+			loadActionReason();
 		});
 
 		$('.ddl-Employees').on('change', function () {
@@ -155,6 +180,27 @@
 			})
 		}
 
+		function loadActionReason() {
+			$.ajax({
+				type: 'GET',
+				url: apiEndpoint + 'Lookups/GetCorrectiveActionReason',
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				headers: {
+					'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+				},
+				success: function (response) {
+
+					var data = response.data;
+					var $select = $('.actionreason');
+
+					$.each(data, function (key, item) {
+						$select.append('<option value=' + item.id + '>' + item.name + '</option>');
+					});
+				}
+			})
+		}
+
 		$('#frmCorrectiveActionDetail').on('submit', function (e) {
 			e.preventDefault();
 
@@ -165,9 +211,12 @@
 			var formData = {
 				createDate: $('#create-date').val(),
 				incidentDate: $('#inci-date').val(),
+				validFromDate: $('#vfrom-date').val(),
+				validToDate: $('#vto-date').val(),
 				employeeId: $('#emp-id').val(),
 				actionId: $('#action-Type').val(),
-				reason: $('#action-reason').val(),
+				reason: $('#action-reason option:selected').text(),
+				remarks: $('#action-remarks').val(),
 			};
 
 			$.blockUI({ baseZ: 1001, message: '<h1>Processing...</h1>' });
