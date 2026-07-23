@@ -5,10 +5,10 @@
 @using PMS.UI.Options
 @inject IOptions<AppSettings> appSettings
 
-@model PMS.UI.Pages.Shedules.ImportRotaModel
+@model PMS.UI.Pages.Imports.SalesModel
 @{
     var apiEndpoint = appSettings.Value.ApiEndpoint;
-	var pageSize = appSettings.Value.DefaultPageSize;
+    var pageSize = appSettings.Value.DefaultPageSize;
 }
 
 @section HeadBlock {
@@ -26,7 +26,7 @@
                 <div class="table-title p-2 me-1 mb-1">
                     <div class="row align-items-center">
                         <div class="col-12">
-                            <h4 class="mb-0">Import Rota</h4>
+                            <h4 class="mb-0">Import Sales</h4>
                         </div>
                     </div>
                 </div>
@@ -105,16 +105,19 @@
 
                 <!-- Table -->
                 <div class="table-responsive">
-                    <table class="table table-striped table-bordered table-hover" id="tblRota">
+                    <table class="table table-striped table-bordered table-hover" id="tblSales">
 
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>Customer Name</th>
                                 <th>Date</th>
-                                <th>Employee ID</th>
-                                <th>Employee Name</th>
-                                <th style="display:none;">Shift ID</th>
-                                <th>Shift</th>
+                                <th>Caller ID</th>
+                                <th>OCN</th>
+                                <th>Provider</th>
+                                <th>RGU</th>
+                                <th>Agent Sold</th>
+                                <th>Portal</th>
                             </tr>
                         </thead>
 
@@ -131,7 +134,6 @@
     </div>
 </div>
 
-
 @section ScriptsBlock {
     <partial name="_ValidationScriptsPartial" />
     <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
@@ -141,11 +143,12 @@
     <script type="text/javascript" src="~/lib/bootstrap-daterangepicker/daterangepicker.min.js"></script>
 
     <script type="text/javascript">
-        $('a[href="/Shedules/ImportRota"]').addClass('active');
+        $('a[href="/Imports/Sales"]').addClass('active');
 
         $(document).on('click', '#show-btn', function (event) {
             event.preventDefault();
-            $('#tblRota').DataTable({
+
+            $('#tblSales').DataTable({
                 processing: true,
                 serverSide: false,
                 paging: false,
@@ -159,11 +162,9 @@
                 // autoWidth: false,
                 // lengthChange: false,
                 ajax: {
-                    url: '/Shedules/ImportRota?handler=LoadData',
+                    url: '/Imports/Sales?handler=LoadData',
                     type: 'GET',
                     dataSrc: function (json) {
-
-                        //console.log("RESPONSE:", json);
 
                         if (!json) return [];
                         if (Array.isArray(json)) return json;
@@ -181,38 +182,42 @@
                             return meta.row + 1;
                         }
                     },
+                    { data: 'Customer Name' },
                     { data: 'Date' },
-                    { data: 'EmplyeeID' },
-                    { data: 'Names' },
-                    {
-                        data: 'ShiftID',
-                        visible: false
-                    },
-                    { data: 'Shift' }
-
+                    { data: 'Caller ID' },
+                    { data: 'OCN' },
+                    { data: 'Provider' },
+                    { data: 'RGU' },
+                    { data: 'Agent Sold' },
+                    { data: 'Portal' },
                 ]
             });
 
         });
 
         // save
-        var apiEndpoint = '@apiEndpoint' + 'Shedule';
+        var apiEndpoint = '@apiEndpoint' + 'Import/Sales';
 
         $(document).on('click', '#save-btn', function (event) {
             event.preventDefault();
 
-            var table = $('#tblRota').DataTable();
+            var table = $('#tblSales').DataTable();
             var data = [];
 
-            $.blockUI({ baseZ: 1001, message: '<h1>Saving Rota ...</h1>' });
+            $.blockUI({ baseZ: 1001, message: '<h1>Saving Sales ...</h1>' });
 
             table.rows().every(function () {
                 var row = this.data();
 
                 data.push({
-                    EmployeeCode: row.EmplyeeID,
-                    ShiftCode: row.ShiftID,
-                    calenderDate: moment(row.Date).format('YYYY-MM-DD')
+                    createDate: moment(row["Date"]).format('YYYY-MM-DD'),
+                    agentName: row["Agent Sold"],
+                    customerName: row["Customer Name"],
+                    callerId: row["Caller ID"],
+                    ocn: row["OCN"],
+                    provider: row["Provider"],
+                    rgu: row["RGU"],
+                    portal: row["Portal"],
                 });
             });
 
@@ -223,7 +228,7 @@
                 url: apiEndpoint,
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
-                data: JSON.stringify({rotas : data}),
+                data: JSON.stringify({sales : data}),
 
                 success: function (data) {
                     $.unblockUI();
