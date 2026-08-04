@@ -1,0 +1,68 @@
+﻿@model Models.ViewModels.Cancellation.QaNotesViewModel
+<div class="modal fade" id="view-notes" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ViewRecordLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="staticBackdropLabel">View QA Notes </h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+
+			<div class="modal-body">
+
+					<input type="hidden" asp-for="Id" />
+
+					<div class="col-lg-12 col-12">
+						<div class="form-group">
+							<label class="control-label">Cancellation Date</label>
+						<input type="text" disabled class="form-control datepicker createDate" />
+						</div>
+					</div>
+
+					<div class="col-lg-12 col-12">
+						<div class="form-group">
+							<label class="control-label">QA Notes</label>
+							<textarea class="form-control remarks" rows="25" readonly></textarea>
+						</div>
+					</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	$(document).ready(function () {
+		var cancelId = $('#Id').val();
+		getQANotesById(cancelId);
+	});
+
+	function getQANotesById(id) {
+
+		var apiurl = apiEndpoint + 'Cancellation/' + id;
+
+		$.blockUI({ baseZ: 1055, message: '<h1>Processing...</h1>' });
+
+		$.ajax({
+			type: 'GET',
+			url: apiurl,
+			contentType: 'application/json; charset=utf-8',
+			dataType: 'json',
+			headers: {
+				'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+			},
+			success: function (response) {
+				$('.createDate').val(moment(response.createDate).format('MM-DD-YYYY'));
+				$('.remarks').val(response.remarks);
+				console.log(response.createDate);
+			},
+			failure: function (response) {
+				$.unblockUI();
+				toastr.error('error!');
+			}
+		}).done(function (result) {
+			$.unblockUI();
+		});
+	}
+</script>
