@@ -110,7 +110,7 @@
     <script type="text/javascript" src="~/lib/bootstrap-daterangepicker/daterangepicker.min.js"></script>
 
     <script type="text/javascript">
-         $('a[href="Cancellations/Approval"]').addClass('active');
+         $('a[href="/Cancellations/Approval"]').addClass('active');
 
          var apiEndpoint = '@apiEndpoint';
          var employeeId = '@employeeId';
@@ -177,7 +177,7 @@
             const recordId = $(this).data('id');
 
             Swal.fire({
-                title: "Approve this cancellation?",
+                title: "Approve this Cancellation?",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Yes, approve"
@@ -226,7 +226,7 @@
             const recordId = $(this).data('id');
 
             Swal.fire({
-                title: "Reject this cancellation?",
+                title: "Reject this Cancellation?",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Yes, reject"
