@@ -258,7 +258,7 @@
                         Authorization: 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val()
                 },
                 data: (data, settings) => {
-                    debugger
+
                     var api = new $.fn.dataTable.Api(settings);
                     var pageIndex = api === undefined ? 1 : api.page.info().page + 1;
                     var $dateRangeData = $('#divDateRange').data('daterangepicker');
