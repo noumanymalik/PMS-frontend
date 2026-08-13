@@ -16,7 +16,19 @@
     var leaveStatusPermission = HasPermission.Get("Leave_Status", context.HttpContext);
     var teamPendingLeavesPermission = HasPermission.Get("Team_Pending_Leaves", context.HttpContext);
     var teamApprovedLeavesPermission = HasPermission.Get("Team_Approved_Leaves", context.HttpContext);
-    
+
+    var importPermission = HasPermission.Get("Import", context.HttpContext);
+    var callLogsPermission = HasPermission.Get("Call_Logs", context.HttpContext);
+    var callSummaryAllPermission = HasPermission.Get("Call_Summary_All", context.HttpContext);
+    var callSummaryInboundPermission = HasPermission.Get("Call_Summary_Inbound", context.HttpContext);
+    var salesPermission = HasPermission.Get("Sales", context.HttpContext);
+    var rottaPermission = HasPermission.Get("Rotta", context.HttpContext);
+
+    var qualityPermission = HasPermission.Get("Quality", context.HttpContext);
+    var canellationPermission = HasPermission.Get("Canellation", context.HttpContext);
+    var approvalPermission = HasPermission.Get("Approval", context.HttpContext);
+    var revertPermission = HasPermission.Get("Revert", context.HttpContext);
+
     var loanPermission = HasPermission.Get("Loan", context.HttpContext);
     var loanRequestPermission = HasPermission.Get("Loan_Request", context.HttpContext);
     var loanStatusPermission = HasPermission.Get("Loan_Status", context.HttpContext);
@@ -24,6 +36,9 @@
     var finalPendingLoanPermission = HasPermission.Get("Final_Pending_Loan", context.HttpContext);
     var releasedApprovedLoanPermission = HasPermission.Get("Released_Approved_Loan", context.HttpContext);
 
+    var reportsPermission = HasPermission.Get("Reports", context.HttpContext);
+    var triumvirateTangoOfTelephonyReportPermission = HasPermission.Get("TriumvirateTangoOfTelephonyReport", context.HttpContext);
+  
     var policesPermission = HasPermission.Get("Polices", context.HttpContext);
     var policiyDocumentsPermisssion = HasPermission.Get("Policiy_Documents", context.HttpContext);
     var scoreCardPermission = HasPermission.Get("Score_Card", context.HttpContext);
@@ -84,25 +99,56 @@
                 </ul>
             </li>
             }
-            <li class="submenu">
-                <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-file-import fa-1-25x me-2"></i><span>Import Files</span> <span class="menu-arrow"></span></a>
-                <ul>
-                    <li><a asp-page="/Imports/CallLogs">Call Logs</a></li>
-                    <li><a asp-page="/Imports/CallSummaryAll">Call Summary All</a></li>
-                    <li><a asp-page="/Imports/CallSummaryInbound">Call Summary Inbound</a></li>
-                    <li><a asp-page="/Imports/Sales">Sales</a></li>
-                    <li><a asp-page="/Shedules/ImportRota">Rotta</a></li>
-                </ul>
-            </li>
 
-            <li class="submenu">
-                <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-clipboard-check fa-1-25x me-2"></i><span>Quality Assurance</span> <span class="menu-arrow"></span></a>
+            @if (importPermission)
+            {
+                <li class="submenu">
+                    <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-file-import fa-1-25x me-2"></i><span>Import Files</span> <span class="menu-arrow"></span></a>
                 <ul>
-                    <li><a asp-page="/Cancellations/Index">Cancellation</a></li>
-                    <li><a asp-page="/Cancellations/Approval">Approval</a></li>
-                    <li><a asp-page="/Cancellations/Revert">Revert</a></li>
+                        @if (callLogsPermission)
+                        {
+                            <li><a asp-page="/Imports/CallLogs">Call Logs</a></li>
+                        }
+                        @if (callSummaryAllPermission)
+                        {
+                            <li><a asp-page="/Imports/CallSummaryAll">Call Summary All</a></li>
+                        }
+                        @if (callSummaryInboundPermission)
+                        {
+                            <li><a asp-page="/Imports/CallSummaryInbound">Call Summary Inbound</a></li>
+                        }
+                        @if (salesPermission)
+                        {
+                            <li><a asp-page="/Imports/Sales">Sales</a></li>
+                        }
+                        @if (rottaPermission)
+                        {
+                            <li><a asp-page="/Shedules/ImportRota">Rotta</a></li>
+                        }
                 </ul>
             </li>
+            }
+
+            @if (qualityPermission)
+            {
+                <li class="submenu">
+                    <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-clipboard-check fa-1-25x me-2"></i><span>Quality Assurance</span> <span class="menu-arrow"></span></a>
+                <ul>
+                        @if (canellationPermission)
+                        {
+                            <li><a asp-page="/Cancellations/Index">Cancellation</a></li>
+                        }
+                        @if (approvalPermission)
+                        {
+                            <li><a asp-page="/Cancellations/Approval">Approval</a></li>
+                        }
+                        @if (revertPermission)
+                        {
+                            <li><a asp-page="/Cancellations/Revert">Revert</a></li>
+                        }
+                </ul>
+            </li>
+            }
 
 
 @*             <li class="submenu">
@@ -173,14 +219,18 @@
             </li>
             }
 
-
+            @if (reportsPermission)
+            {
                 <li class="submenu">
                     <a class="" href="javascript:void(0);"><i class="fa-solid fa-book fa-people-arrows fa-1-25x me-2"></i><span> Reports</span> <span class="menu-arrow"></span></a>
                     <ul>
-                    <li><a asp-page="/Reports/TriumvirateTangoOfTelephony">TriumvirateTangoOfTelephony</a></li>
+                        @if (triumvirateTangoOfTelephonyReportPermission)
+                        {
+                            <li><a asp-page="/Reports/TriumvirateTangoOfTelephony">TriumvirateTangoOfTelephony</a></li>
+                        }
                     </ul>
                 </li>
-
+            }
 
             @if (policesPermission)
             {

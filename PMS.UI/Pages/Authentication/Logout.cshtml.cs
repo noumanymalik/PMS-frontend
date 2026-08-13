@@ -33,6 +33,18 @@ namespace PMS.UI.Pages.Authentication
             HttpContext.Session.SetString("Organizational_Chart", "");
             HttpContext.Session.SetString("Corrective_Action", "");
 
+            HttpContext.Session.SetString("Import", "");
+            HttpContext.Session.SetString("Call_Logs", "");
+            HttpContext.Session.SetString("Call_Summary_All", "");
+            HttpContext.Session.SetString("Call_Summary_Inbound", "");
+            HttpContext.Session.SetString("Sales", "");
+            HttpContext.Session.SetString("Rotta", "");
+
+            HttpContext.Session.SetString("Quality", "");
+            HttpContext.Session.SetString("Canellation", "");
+            HttpContext.Session.SetString("Approval", "");
+            HttpContext.Session.SetString("Revert", "");
+
             HttpContext.Session.SetString("Leave", "");
             HttpContext.Session.SetString("Apply_Leave", "");
             HttpContext.Session.SetString("Leave_Status", "");
@@ -50,6 +62,9 @@ namespace PMS.UI.Pages.Authentication
             HttpContext.Session.SetString("Team_Pending_Loan", "");
             HttpContext.Session.SetString("Final_Pending_Loan", "");
             HttpContext.Session.SetString("Released_Approved_Loan", "");
+
+            HttpContext.Session.SetString("Reports", "");
+            HttpContext.Session.SetString("TriumvirateTangoOfTelephonyReport", "");
 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToPage("/Authentication/Login");
