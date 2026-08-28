@@ -219,6 +219,19 @@
             </li>
             }
 
+            <li class="submenu">
+                <a class="" href="javascript:void(0);"><i class="fa-solid fas fas fa-car fa-1-25x me-2"></i><span>Company Transport</span> <span class="menu-arrow"></span></a>
+                <ul>
+
+                    <li><a asp-page="/Vehicles/Index">Vehicle</a></li>
+
+                    <li><a asp-page="/TransportShedule/Index">Shedule</a></li>
+
+                    <li><a asp-page="/TransportRegister/Index">Register</a></li>
+
+                </ul>
+            </li>
+
             @if (reportsPermission)
             {
                 <li class="submenu">
