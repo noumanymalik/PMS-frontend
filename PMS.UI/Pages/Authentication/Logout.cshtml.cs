@@ -24,6 +24,10 @@ namespace PMS.UI.Pages.Authentication
             HttpContext.Session.SetString("View_Employee_Detail", "");
             HttpContext.Session.SetString("Edit_Employee_Information", "");
 
+            HttpContext.Session.SetString("AgentSession", "");
+            HttpContext.Session.SetString("AgentAttendance", "");
+            HttpContext.Session.SetString("AgentBreak", "");
+
             HttpContext.Session.SetString("Department", "");
             HttpContext.Session.SetString("Add_New_Department", "");
 
@@ -62,6 +66,11 @@ namespace PMS.UI.Pages.Authentication
             HttpContext.Session.SetString("Team_Pending_Loan", "");
             HttpContext.Session.SetString("Final_Pending_Loan", "");
             HttpContext.Session.SetString("Released_Approved_Loan", "");
+
+            HttpContext.Session.SetString("CompanyTransport", "");
+            HttpContext.Session.SetString("CT_Vehicle", "");
+            HttpContext.Session.SetString("CT_Shedule", "");
+            HttpContext.Session.SetString("CT_Register", "");
 
             HttpContext.Session.SetString("Reports", "");
             HttpContext.Session.SetString("TriumvirateTangoOfTelephonyReport", "");

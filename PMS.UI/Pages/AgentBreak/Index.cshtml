@@ -1,0 +1,508 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+@model PMS.UI.Pages.AgentBreak.IndexModel
+@{
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var pageSize = appSettings.Value.DefaultPageSize;
+}
+@using System.Security.Claims;
+@{
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+@section HeadBlock {
+    <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
+}
+
+<style>
+    :root {
+        --meal: #FF5A5F;
+        --prayer: #00BFA6;
+        --coaching: #9B51E0;
+        --training: #2D9CDB;
+        --bio: #F2994A;
+        --huddle: #F2C94C;
+    }
+
+    body {
+        background: #f0f2f5;
+    }
+
+    .info-box {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 14px 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .break-card {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    /* FANTASTIC BUTTONS */
+    .btn-start-break {
+        height: 88px;
+        border-radius: 14px;
+        border: none;
+        color: white;
+        font-weight: 800;
+        font-size: .9rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: all .2s cubic-bezier(.175,.885,.32,1.275);
+        text-transform: uppercase;
+    }
+
+        .btn-start-break i {
+            font-size: 26px;
+        }
+
+        .btn-start-break:not(:disabled):hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,.2);
+        }
+
+        .btn-start-break:disabled {
+            opacity: .35;
+            filter: grayscale(.7);
+        }
+
+    .btn-end-break {
+        height: 68px;
+        border-radius: 14px;
+        font-weight: 800;
+        background: white;
+        border: 3px solid;
+        transition: all .3s ease;
+        text-transform: uppercase;
+        font-size: .85rem;
+    }
+
+        .btn-end-break:disabled {
+            background: #f9fafb !important;
+            border-color: #e5e7eb !important;
+            color: #9ca3af !important;
+        }
+
+        .btn-end-break.active-end {
+            color: white !important;
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,.2);
+            animation: pulseBtn 1s infinite alternate;
+        }
+
+    /* Unique Colors */
+    .c-meal {
+        background: var(--meal);
+        border-color: var(--meal);
+        color: white;
+    }
+
+    .c-meal-outline {
+        border-color: var(--meal);
+        color: var(--meal);
+    }
+
+    .c-meal.active-end {
+        background: var(--meal) !important;
+    }
+
+    .c-prayer {
+        background: var(--prayer);
+        border-color: var(--prayer);
+        color: white;
+    }
+
+    .c-prayer-outline {
+        border-color: var(--prayer);
+        color: var(--prayer);
+    }
+
+    .c-prayer.active-end {
+        background: var(--prayer) !important;
+    }
+
+    .c-coaching {
+        background: var(--coaching);
+        border-color: var(--coaching);
+        color: white;
+    }
+
+    .c-coaching-outline {
+        border-color: var(--coaching);
+        color: var(--coaching);
+    }
+
+    .c-coaching.active-end {
+        background: var(--coaching) !important;
+    }
+
+    .c-training {
+        background: var(--training);
+        border-color: var(--training);
+        color: white;
+    }
+
+    .c-training-outline {
+        border-color: var(--training);
+        color: var(--training);
+    }
+
+    .c-training.active-end {
+        background: var(--training) !important;
+    }
+
+    .c-bio {
+        background: var(--bio);
+        border-color: var(--bio);
+        color: white;
+    }
+
+    .c-bio-outline {
+        border-color: var(--bio);
+        color: var(--bio);
+    }
+
+    .c-bio.active-end {
+        background: var(--bio) !important;
+    }
+
+    .c-huddle {
+        background: var(--huddle);
+        border-color: var(--huddle);
+        color: #111;
+    }
+
+    .c-huddle-outline {
+        border-color: var(--huddle);
+        color: #111;
+    }
+
+    .c-huddle.active-end {
+        background: var(--huddle) !important;
+        color: #111 !important;
+    }
+
+    .status-pill {
+        font-size: .8rem;
+        padding: 6px 14px;
+        border-radius: 50px;
+    }
+</style>
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-11 col-lg-10 col-xl-9">
+
+            <div class="card break-card">
+                <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center px-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-user-clock fa-lg me-3"></i>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Techtiks Global - Break Console</h5>
+                            <small class="opacity-75">Sales Executive Attendance Module</small>
+                        </div>
+                    </div>
+                    <div class="text-end">
+@*                         <span id="live-timer" class="h4 fw-bold mb-0">00:00</span><br> *@
+                        <small id="session-date" class="opacity-75">-</small>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <!-- Current Status Bar -->
+                    <div id="current-status-bar" class="alert alert-success d-flex justify-content-between align-items-center rounded-3">
+                        <div class="d-flex align-items-center">
+                            <span class="bg-success rounded-circle me-3" style="width:12px;height:12px; display:inline-block;"></span>
+                            <div>
+                                <strong id="status-title">Not Available - Off Duty</strong>
+                                <div class="small" id="status-sub">Select a break type below to go on break</div>
+                            </div>
+                        </div>
+                        <span class="badge status-pill bg-success" id="status-badge">OFFLINE</span>
+                    </div>
+
+                    <!-- START BREAK - 6 BUTTONS -->
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-play-circle text-primary me-2"></i>START BREAK</h6>
+                            <small class="text-muted">One click to go on break</small>
+                        </div>
+                        <div class="row g-3" id="start-break-row">
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-start-break c-meal w-100" data-break-id="1" data-break-name="Meal Break" disabled><i class="fas fa-utensils"></i> Meal Break</button></div>
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-start-break c-prayer w-100" data-break-id="2" data-break-name="Prayer Break" disabled><i class="fas fa-praying-hands"></i> Prayer</button></div>
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-start-break c-bio w-100" data-break-id="3" data-break-name="BIO Break" disabled><i class="fas fa-restroom"></i> BIO Break</button></div>
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-start-break c-coaching w-100" data-break-id="4" data-break-name="Coaching Break" disabled><i class="fas fa-chalkboard-teacher"></i> Coaching</button></div>
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-start-break c-training w-100" data-break-id="5" data-break-name="Training Break" disabled><i class="fas fa-graduation-cap"></i> Training</button></div>
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-start-break c-huddle w-100" data-break-id="6" data-break-name="Huddle Break" disabled><i class="fas fa-users"></i> Huddle</button></div>
+                        </div>
+                    </div>
+
+                    <hr class="my-5">
+
+                    <!-- END BREAK - 6 BUTTONS -->
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-stop-circle text-danger me-2"></i>END BREAK</h6>
+                            <small class="text-muted" id="end-hint">Only your active break will be enabled</small>
+                        </div>
+                        <div class="row g-3" id="end-break-row">
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-meal-outline w-100" data-break-id="1" data-break-name="Meal Break" disabled>END MEAL</button></div>
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-prayer-outline w-100" data-break-id="2" data-break-name="Prayer Break" disabled>END PRAYER</button></div>
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-bio-outline w-100" data-break-id="3" data-break-name="BIO Break" disabled>END BIO</button></div>
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-coaching-outline w-100" data-break-id="4" data-break-name="Coaching Break" disabled>END COACHING</button></div>
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-training-outline w-100" data-break-id="5" data-break-name="Training Break" disabled>END TRAINING</button></div>
+                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-huddle-outline w-100" data-break-id="6" data-break-name="Huddle Break" disabled>END HUDDLE</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-light d-flex justify-content-between px-4">
+                    <small class="text-muted">Session Start: <span id="session-start-time">-</span></small>
+                    @* <small class="text-muted">Total Break Today: <b id="total-break-time">0m</b></small> *@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+    <script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+    <script type="text/javascript" src="~/lib/jquery-mask/jquery.mask.min.js"></script>
+
+    <script type="text/javascript">
+        $('a[href="/AgentSession"]').addClass('active');
+
+        var apiEndpoint = '@apiEndpoint';
+        var employeeId = '@employeeId';
+        var isLoggedIn = 0;
+        var sessionId = null;
+        var breakTypeId = null;
+
+        $(document).ready(function () {
+            debugger
+            CheckLoginStatus();
+        });
+
+        function enableStartBreakButtons() {
+            $('.btn-start-break').prop('disabled', false);
+        }
+
+        function disableStartBreakButtons() {
+            $('.btn-start-break').prop('disabled', true);
+        }
+
+        function disableEndBreakButtons() {
+            $('.btn-end-break').prop('disabled', true);
+        }
+
+        function enableEndBreakButton(id) {
+            $('.btn-end-break[data-break-id='+ id +']').prop('disabled', false);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+
+            const date = new Date(dateString);
+
+            return (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
+                   date.getDate().toString().padStart(2, '0') + '/' +
+                   date.getFullYear();
+        }
+
+         function CheckLoginStatus() {
+             $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'AgentSession/GetSessionByEmployeeId?EmployeeId=' + 1,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (data) {
+                    if (data && data.id) {
+
+                        isLoggedIn = 1;
+                        sessionId = data.id;
+                        $('#status-badge').text('ONLINE');
+                        $('#status-title').text('Available - On Duty');
+                        $('#session-date').text(formatDate(data.sessionDate));
+                        $('#session-start-time').text(
+                            new Date(data.loginTime).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false
+                            })
+                        );
+
+                        enableStartBreakButtons();
+                        CheckBreakStatus();
+                    } 
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    var errors = JSON.parse(jqXHR.responseText).errors;
+                    $.each(jqXHR.responseJSON.errors, function (field, message) {
+                        toastr.error(message);
+                    });
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+        }
+
+        function CheckBreakStatus() {
+             $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'AgentSession/GetCurrentBreakByEmployeeId?EmployeeId=' + 1,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (data) {
+                    debugger
+                    disableStartBreakButtons();
+                    enableEndBreakButton(data.breakTypeId);
+
+                    breakTypeId = data.breakTypeId;
+
+                    console.log("break type:", data.breakTypeId);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    var errors = JSON.parse(jqXHR.responseText).errors;
+                    $.each(jqXHR.responseJSON.errors, function (field, message) {
+                        toastr.error(message);
+                    });
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+        }
+
+         $('.btn-start-break').on('click', function () {
+
+            const breakId = $(this).data('break-id');
+            const breakName = $(this).data('break-name');
+
+            var formData = {
+                createDate: new Date().toISOString().split('T')[0],
+                agentSessionId: sessionId,
+                employeeId: employeeId,
+                breakTypeId: breakId,
+                startTime: new Date().toISOString(),
+                remarks: breakName,
+            };
+
+            $.blockUI({ baseZ: 1001, message: '<h1>Processing...</h1>' });
+
+            $.ajax({
+                type: 'POST',
+                url: apiEndpoint + 'AgentSession/AgentBreakIn',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(formData),
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (data) {
+                    $.unblockUI();
+                    if (data.succeeded) {
+                        disableStartBreakButtons();
+                        enableEndBreakButton(breakId);
+                        breakTypeId = breakId;
+                        toastr.success(data.messages[0]);
+                    }
+                    else {
+                        toastr.error(data.message);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.unblockUI();
+                    var errors = JSON.parse(jqXHR.responseText).errors;
+                    $.each(jqXHR.responseJSON.errors, function (field, message) {
+                        toastr.error(message);
+                    });
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+
+            console.log('Break ID:', breakId);
+            console.log('Break Name:', breakName);
+        });
+
+        $('.btn-end-break').on('click', function () {
+
+            // const breakId = $(this).data('break-id');
+
+            const breakId = breakTypeId;
+
+            var formData = {
+                agentSessionId: sessionId,
+                employeeId: employeeId,
+                breakTypeId: breakId,
+                endTime: new Date().toISOString(),
+            };
+
+            $.blockUI({ baseZ: 1001, message: '<h1>Processing...</h1>' });
+
+            $.ajax({
+                type: 'PUT',
+                url: apiEndpoint + 'AgentSession/AgentBreakOut',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(formData),
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (data) {
+                    $.unblockUI();
+                    if (data.succeeded) {
+                        enableStartBreakButtons();
+                        disableEndBreakButtons();
+                        toastr.success(data.messages[0]);
+                    }
+                    else {
+                        toastr.error(data.message);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.unblockUI();
+                    var errors = JSON.parse(jqXHR.responseText).errors;
+                    $.each(jqXHR.responseJSON.errors, function (field, message) {
+                        toastr.error(message);
+                    });
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+
+            console.log('Break ID:', breakId);
+            console.log('Break Name:', breakName);
+        });
+
+
+          
+
+        
+
+
+    </script>
+
+}
+
+
+

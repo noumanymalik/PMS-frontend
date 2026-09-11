@@ -1,0 +1,253 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+
+@model PMS.UI.Pages.AgentSession.IndexModel
+@{
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var pageSize = appSettings.Value.DefaultPageSize;
+}
+
+@using System.Security.Claims;
+@{
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+@section HeadBlock {
+    <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+}
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card shadow-lg border-0">
+                <div class="card-body text-center p-5">
+
+                    <div class="mb-4">
+                        <i class="fas fa-user-clock fa-4x text-primary"></i>
+                    </div>
+
+                    <h3 class="fw-bold mb-2">Employee Attendance</h3>
+
+                    <p class="text-muted mb-4">
+                        Please select your attendance action
+                    </p>
+
+                    <div class="row g-3">
+
+                        <!-- Login -->
+                        <div class="col-6">
+                            <button type="button"
+                                    class="btn btn-success w-100 py-4 checkIn-btn">
+                                <i class="fas fa-sign-in-alt fa-2x d-block mb-2"></i>
+                                <span class="fw-bold">Check In</span>
+                            </button>
+                        </div>
+
+                        <!-- Logout -->
+                        <div class="col-6">
+                            <button type="button"
+                                    class="btn btn-danger w-100 py-4 checkOut-btn">
+                                <i class="fas fa-sign-out-alt fa-2x d-block mb-2"></i>
+                                <span class="fw-bold">Check Out</span>
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+	<partial name="_ValidationScriptsPartial" />
+	<script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+	<script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+	<script type="text/javascript" src="~/lib/jquery-mask/jquery.mask.min.js"></script>
+
+	<script type="text/javascript">
+        $('a[href="/AgentSession"]').addClass('active');
+
+		var apiEndpoint = '@apiEndpoint';
+		var employeeId = '@employeeId';
+        var isLoggedIn = 0;
+        var sessionId = null;
+        var isOnBreak = 0;
+
+        $(document).ready(function () {
+            CheckLoginStatus();
+            CheckBreakStatus();
+        });
+
+         function CheckLoginStatus() {
+             $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'AgentSession/GetSessionByEmployeeId?EmployeeId=' + 1,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (data) {
+                    debugger
+                    if (data && data.id) {
+
+                        isLoggedIn = 1;
+                        sessionId = data.id;
+
+                    } else {
+
+                        isLoggedIn = 0;
+                        sessionId = null;
+                    }
+                    console.log("Login Status:", isLoggedIn);
+                    console.log("Session ID:", sessionId);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    var errors = JSON.parse(jqXHR.responseText).errors;
+                    $.each(jqXHR.responseJSON.errors, function (field, message) {
+                        toastr.error(message);
+                    });
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+        }
+
+        function CheckBreakStatus() {
+             $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'AgentSession/GetCurrentBreakByEmployeeId?EmployeeId=' + 1,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (data) {
+                    debugger
+                    isOnBreak = 1;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    var errors = JSON.parse(jqXHR.responseText).errors;
+                    $.each(jqXHR.responseJSON.errors, function (field, message) {
+                        toastr.error(message);
+                    });
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+        }
+
+          $(document).on('click', '.checkIn-btn', function (e) {
+            e.preventDefault();
+
+            if (isLoggedIn === 1) {
+                    toastr.warning("You are already logged in.");
+            return;
+            }
+
+            var formData = {
+                createDate: new Date().toISOString().split('T')[0],
+                sessionDate: new Date().toISOString().split('T')[0],
+                employeeId: employeeId,
+                loginTime: new Date().toISOString(),
+            };
+
+            $.blockUI({ baseZ: 1001, message: '<h1>Processing...</h1>' });
+
+            $.ajax({
+                type: 'POST',
+                url: apiEndpoint + 'AgentSession/CreateSession',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(formData),
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (data) {
+                    $.unblockUI();
+                    if (data.succeeded) {
+                        isLoggedIn = 1;
+                        CheckLoginStatus();
+                        toastr.success(data.messages[0]);
+                    }
+                    else {
+                        toastr.error(data.message);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.unblockUI();
+                    var errors = JSON.parse(jqXHR.responseText).errors;
+                    $.each(jqXHR.responseJSON.errors, function (field, message) {
+                        toastr.error(message);
+                    });
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+        });
+
+        $(document).on('click', '.checkOut-btn', function (e) {
+            e.preventDefault();
+
+            if (isLoggedIn === 0) {
+                    toastr.warning("You are not logged in.");
+            return;
+            }
+
+            if (isOnBreak === 1) {
+                    toastr.warning("You are in break - Mute the break first.");
+            return;
+            }
+
+            var formData = {
+                sessionId: sessionId,
+                logOutTime: new Date().toISOString(),
+            };
+
+            $.blockUI({ baseZ: 1001, message: '<h1>Processing...</h1>' });
+
+            $.ajax({
+                type: 'PUT',
+                url: apiEndpoint + 'AgentSession/LogOutSession',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(formData),
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (data) {
+                    $.unblockUI();
+                    if (data.succeeded) {
+                        isLoggedIn = 0;
+                        CheckLoginStatus();
+                        toastr.success(data.messages[0]);
+                    }
+                    else {
+                        toastr.error(data.message);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $.unblockUI();
+                    var errors = JSON.parse(jqXHR.responseText).errors;
+                    $.each(jqXHR.responseJSON.errors, function (field, message) {
+                        toastr.error(message);
+                    });
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+        });
+
+
+	</script>
+
+}

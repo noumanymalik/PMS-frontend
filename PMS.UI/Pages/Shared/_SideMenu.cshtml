@@ -5,6 +5,12 @@
     var applicationUsersPermission = HasPermission.Get("Application_Users", context.HttpContext);
     var userRolesPermission = HasPermission.Get("User_Roles", context.HttpContext);
     var userPermission = HasPermission.Get("User_Permissions", context.HttpContext);
+
+    var agentSessionPermission = HasPermission.Get("AgentSession", context.HttpContext);
+    var agentAttendancePermission = HasPermission.Get("AgentAttendance", context.HttpContext);
+    var agentBreakPermission = HasPermission.Get("AgentBreak", context.HttpContext);
+
+
     var administrationPermission = HasPermission.Get("Administration", context.HttpContext);
     var teamStructurePermission = HasPermission.Get("Team_Structure", context.HttpContext);
     var DepartmentPermission = HasPermission.Get("Department", context.HttpContext);
@@ -35,6 +41,11 @@
     var teamPendingLoanPermission = HasPermission.Get("Team_Pending_Loan", context.HttpContext);
     var finalPendingLoanPermission = HasPermission.Get("Final_Pending_Loan", context.HttpContext);
     var releasedApprovedLoanPermission = HasPermission.Get("Released_Approved_Loan", context.HttpContext);
+
+    var companyTransportPermission = HasPermission.Get("CompanyTransport", context.HttpContext);
+    var ct_VehiclePermission = HasPermission.Get("CT_Vehicle", context.HttpContext);
+    var ct_ShedulePermission = HasPermission.Get("CT_Shedule", context.HttpContext);
+    var ct_RegisterPermission = HasPermission.Get("CT_Register", context.HttpContext);
 
     var reportsPermission = HasPermission.Get("Reports", context.HttpContext);
     var triumvirateTangoOfTelephonyReportPermission = HasPermission.Get("TriumvirateTangoOfTelephonyReport", context.HttpContext);
@@ -68,6 +79,24 @@
                         <li><a asp-page="/Authentication/Logout">Logout</a></li>
                     </ul>
                 </li>
+            }
+
+            @if (agentSessionPermission)
+            {
+            <li class="submenu">
+                <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-user-clock fa-1-25x me-2"></i><span>Agent Session</span> <span class="menu-arrow"></span></a>
+                <ul>
+                    @if (agentAttendancePermission)
+                    {
+                        <li><a asp-page="/AgentSession/Index">Attendance</a></li>
+                    }
+                    @if (agentBreakPermission)
+                    {
+                        <li><a asp-page="/AgentBreak/Index">Breaks</a></li>
+                    }
+
+                </ul>
+            </li>
             }
 
             @if (administrationPermission)
@@ -219,18 +248,36 @@
             </li>
             }
 
-            <li class="submenu">
-                <a class="" href="javascript:void(0);"><i class="fa-solid fas fas fa-car fa-1-25x me-2"></i><span>Company Transport</span> <span class="menu-arrow"></span></a>
+            @if (companyTransportPermission)
+            {
+                <li class="submenu">
+                    <a class="" href="javascript:void(0);"><i class="fa-solid fas fas fa-car fa-1-25x me-2"></i><span>Company Transport</span> <span class="menu-arrow"></span></a>
                 <ul>
-
-                    <li><a asp-page="/Vehicles/Index">Vehicle</a></li>
-
-                    <li><a asp-page="/TransportShedules/Index">Shedule</a></li>
-
-                    <li><a asp-page="/TransportRegisters/Index">Register</a></li>
-
+                        @if (ct_VehiclePermission)
+                        {
+                            <li><a asp-page="/Vehicles/Index">Vehicle</a></li>
+                        }
+                        @if (ct_ShedulePermission)
+                        {
+                            <li><a asp-page="/TransportShedules/Index">Shedule</a></li>
+                        }
+                        @if (ct_RegisterPermission)
+                        {
+                            <li><a asp-page="/TransportRegisters/Index">Register</a></li>
+                        }
                 </ul>
             </li>
+            }
+
+@*             <li class="submenu">
+                <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-calendar-check fa-1-25x me-2"></i><span>Attendance</span> <span class="menu-arrow"></span></a>
+                <ul>
+
+                    <li><a asp-page="/Attendance/Index">Mark Attendance</a></li>
+                    <li><a asp-page="/Legends/Index">Legends</a></li>
+
+                </ul>
+            </li> *@
 
             @if (reportsPermission)
             {

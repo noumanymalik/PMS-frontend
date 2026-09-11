@@ -1,0 +1,283 @@
+﻿@page
+@model PMS.UI.Pages.Attendance.IndexModel
+@{
+}
+<style>
+.employee-list {
+    width: 100%;
+    background: #fff;
+    border: 1px solid #e8e9ec;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.employee-row {
+    min-height: 74px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eeeeef;
+    background: #fff;
+}
+
+.employee-row:last-child {
+    border-bottom: none;
+}
+
+/* Checkbox */
+.employee-check {
+    width: 52px;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.employee-check input {
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+    accent-color: #1d1f23;
+}
+
+/* Employee */
+.employee-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.employee-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #17191d;
+    color: #fff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    flex-shrink: 0;
+}
+
+.employee-details {
+    min-width: 0;
+}
+
+.employee-name {
+    color: #16181c;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+}
+
+.employee-meta {
+    color: #85878d;
+    font-size: 12px;
+    line-height: 17px;
+}
+
+/* Right side */
+.employee-action {
+    width: 175px;
+    height: 74px;
+
+    display: flex;
+    align-items: center;
+
+    padding-left: 6px;
+    border-left: 1px solid #eeeeef;
+}
+
+/* Status */
+.status-select {
+    width: 132px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+
+    border: 1px solid #e2e3e7;
+    border-radius: 23px;
+
+    padding: 0 10px;
+
+    background: #fff;
+
+    position: relative;
+}
+
+.status-select.tardy {
+    border-color: #f3d47d;
+    background: #fffdf7;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #dedfe3;
+
+    margin-right: 8px;
+
+    flex-shrink: 0;
+}
+
+.status-select.tardy .status-dot {
+    background: #f5b400;
+}
+
+.status-select select {
+    appearance: none;
+    -webkit-appearance: none;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: #9b9da3;
+
+    font-size: 14px;
+
+    width: 88px;
+
+    cursor: pointer;
+}
+
+.status-select.tardy select {
+    color: #a66b00;
+}
+
+.status-select i {
+    position: absolute;
+    right: 11px;
+
+    font-size: 10px;
+    color: #9b9da3;
+
+    pointer-events: none;
+}
+</style>
+
+<div class="employee-list">
+
+    <!-- Employee Row -->
+    <div class="employee-row">
+
+        <div class="employee-check">
+            <input type="checkbox">
+        </div>
+
+        <div class="employee-info">
+
+            <div class="employee-avatar">
+                AM
+            </div>
+
+            <div class="employee-details">
+                <div class="employee-name">Aarav Mehta</div>
+                <div class="employee-meta">SE01 • Enterprise West</div>
+            </div>
+
+        </div>
+
+        <div class="employee-action">
+            <div class="status-select tardy">
+                <span class="status-dot"></span>
+
+                <select>
+                    <option selected>Tardy</option>
+                    <option>Present</option>
+                    <option>Absent</option>
+                </select>
+
+                <i class="fa fa-chevron-down"></i>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Employee Row -->
+    <div class="employee-row">
+
+        <div class="employee-check">
+            <input type="checkbox">
+        </div>
+
+        <div class="employee-info">
+
+            <div class="employee-avatar">
+                SC
+            </div>
+
+            <div class="employee-details">
+                <div class="employee-name">Sophia Chen</div>
+                <div class="employee-meta">SE02 • Enterprise East</div>
+            </div>
+
+        </div>
+
+        <div class="employee-action">
+            <div class="status-select tardy">
+                <span class="status-dot"></span>
+
+                <select>
+                    <option selected>Tardy</option>
+                    <option>Present</option>
+                    <option>Absent</option>
+                </select>
+
+                <i class="fa fa-chevron-down"></i>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Employee Row -->
+    <div class="employee-row">
+
+        <div class="employee-check">
+            <input type="checkbox">
+        </div>
+
+        <div class="employee-info">
+
+            <div class="employee-avatar">
+                MJ
+            </div>
+
+            <div class="employee-details">
+                <div class="employee-name">Marcus Johnson</div>
+                <div class="employee-meta">SE03 • SMB Central</div>
+            </div>
+
+        </div>
+
+        <div class="employee-action">
+            <div class="status-select">
+
+                <span class="status-dot"></span>
+
+                <select>
+                    <option selected>— Select —</option>
+                    <option>Tardy</option>
+                    <option>Present</option>
+                    <option>Absent</option>
+                </select>
+
+                <i class="fa fa-chevron-down"></i>
+            </div>
+        </div>
+
+    </div>
+
+</div>
