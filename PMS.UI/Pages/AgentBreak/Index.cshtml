@@ -270,7 +270,7 @@
 
                 <div class="card-footer bg-light d-flex justify-content-between px-4">
                     <small class="text-muted">Session Start: <span id="session-start-time">-</span></small>
-                    @* <small class="text-muted">Total Break Today: <b id="total-break-time">0m</b></small> *@
+                    <small class="text-muted">Current Break Time: <b id="current-break-timer">00:00:00</b></small>
                 </div>
             </div>
         </div>
@@ -291,6 +291,7 @@
         var isLoggedIn = 0;
         var sessionId = null;
         var breakTypeId = null;
+        let breakTimer = null;
 
         $(document).ready(function () {
             debugger
@@ -323,10 +324,58 @@
                    date.getFullYear();
         }
 
+        function startBreakTimer(breakTime) {
+
+            if (breakTimer) {
+                clearInterval(breakTimer);
+            }
+
+            // API loginTime is UTC
+            // const start = new Date(breakTime + 'Z');
+            const start = breakTime instanceof Date
+                ? breakTime
+                : new Date(breakTime + 'Z');
+
+            function updateTimer() {
+
+                const currentTime = new Date();
+
+                let totalSeconds = Math.floor(
+                    (currentTime - start) / 1000
+                );
+
+                if (totalSeconds < 0) {
+                    totalSeconds = 0;
+                }
+
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                $('#current-break-timer').text(
+                    String(hours).padStart(2, '0') + ':' +
+                    String(minutes).padStart(2, '0') + ':' +
+                    String(seconds).padStart(2, '0')
+                );
+            }
+
+            updateTimer();
+
+            breakTimer = setInterval(updateTimer, 1000);
+        }
+
+        function stopBreakTimer() {
+
+            if (breakTimer) {
+                clearInterval(breakTimer);
+                breakTimer = null;
+            }
+        }
+
          function CheckLoginStatus() {
              $.ajax({
                 type: 'GET',
-                url: apiEndpoint + 'AgentSession/GetSessionByEmployeeId?EmployeeId=' + 1,
+                url: apiEndpoint + 'AgentSession/GetSessionByEmployeeId?EmployeeId=' + employeeId,
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 headers: {
@@ -339,9 +388,9 @@
                         sessionId = data.id;
                         $('#status-badge').text('ONLINE');
                         $('#status-title').text('Available - On Duty');
-                        $('#session-date').text(formatDate(data.sessionDate));
+                        $('#session-date').text(formatDate(data.sessionDate + 'Z'));
                         $('#session-start-time').text(
-                            new Date(data.loginTime).toLocaleTimeString([], {
+                            new Date(data.loginTime + 'Z').toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit',
                                 hour12: false
@@ -366,7 +415,7 @@
         function CheckBreakStatus() {
              $.ajax({
                 type: 'GET',
-                url: apiEndpoint + 'AgentSession/GetCurrentBreakByEmployeeId?EmployeeId=' + 1,
+                url: apiEndpoint + 'AgentSession/GetCurrentBreakByEmployeeId?EmployeeId=' + employeeId,
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 headers: {
@@ -376,6 +425,7 @@
                     debugger
                     disableStartBreakButtons();
                     enableEndBreakButton(data.breakTypeId);
+                    startBreakTimer(data.startTime);
 
                     breakTypeId = data.breakTypeId;
 
@@ -423,6 +473,7 @@
                         disableStartBreakButtons();
                         enableEndBreakButton(breakId);
                         breakTypeId = breakId;
+                        startBreakTimer(new Date());
                         toastr.success(data.messages[0]);
                     }
                     else {
@@ -440,13 +491,11 @@
                 console.log(result);
             });
 
-            console.log('Break ID:', breakId);
-            console.log('Break Name:', breakName);
+            // console.log('Break ID:', breakId);
+            // console.log('Break Name:', breakName);
         });
 
         $('.btn-end-break').on('click', function () {
-
-            // const breakId = $(this).data('break-id');
 
             const breakId = breakTypeId;
 
@@ -473,6 +522,7 @@
                     if (data.succeeded) {
                         enableStartBreakButtons();
                         disableEndBreakButtons();
+                        stopBreakTimer();
                         toastr.success(data.messages[0]);
                     }
                     else {
@@ -490,8 +540,8 @@
                 console.log(result);
             });
 
-            console.log('Break ID:', breakId);
-            console.log('Break Name:', breakName);
+            // console.log('Break ID:', breakId);
+            // console.log('Break Name:', breakName);
         });
 
 

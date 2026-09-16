@@ -19,6 +19,16 @@
     <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
 }
 
+<style>
+    #session-duration {
+        font-size: 32px;
+        font-weight: 700;
+        color: #000 !important;
+        letter-spacing: 3px;
+        font-family: 'Courier New', monospace;
+    }
+</style>
+
 <input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
 
 <div class="container-fluid">
@@ -37,6 +47,19 @@
                     <p class="text-muted mb-4">
                         Please select your attendance action
                     </p>
+
+                    <!-- Session Timer -->
+                    <div class="mb-4">
+                        <div class="text-muted small mb-1">
+                            Session Duration
+                        </div>
+
+                        <div id="session-duration"
+                             class="fw-bold text-primary"
+                             style="font-size: 32px; letter-spacing: 2px; font-family: 'Courier New', monospace;">
+                            00:00:00
+                        </div>
+                    </div>
 
                     <div class="row g-3">
 
@@ -81,35 +104,79 @@
         var isLoggedIn = 0;
         var sessionId = null;
         var isOnBreak = 0;
+        let sessionTimer = null;
 
         $(document).ready(function () {
             CheckLoginStatus();
             CheckBreakStatus();
         });
 
+        function startSessionTimer(loginTime) {
+
+            if (sessionTimer) {
+                clearInterval(sessionTimer);
+            }
+
+            // API loginTime is UTC
+            const start = new Date(loginTime + 'Z');
+
+            function updateTimer() {
+
+                const currentTime = new Date();
+
+                let totalSeconds = Math.floor(
+                    (currentTime - start) / 1000
+                );
+
+                if (totalSeconds < 0) {
+                    totalSeconds = 0;
+                }
+
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                $('#session-duration').text(
+                    String(hours).padStart(2, '0') + ':' +
+                    String(minutes).padStart(2, '0') + ':' +
+                    String(seconds).padStart(2, '0')
+                );
+            }
+
+            updateTimer();
+
+            sessionTimer = setInterval(updateTimer, 1000);
+        }
+
+        function stopSessionTimer() {
+
+            if (sessionTimer) {
+                clearInterval(sessionTimer);
+                sessionTimer = null;
+            }
+        }
+
          function CheckLoginStatus() {
              $.ajax({
                 type: 'GET',
-                url: apiEndpoint + 'AgentSession/GetSessionByEmployeeId?EmployeeId=' + 1,
+                url: apiEndpoint + 'AgentSession/GetSessionByEmployeeId?EmployeeId=' + employeeId,
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 headers: {
                     'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
                 },
                 success: function (data) {
-                    debugger
                     if (data && data.id) {
 
                         isLoggedIn = 1;
                         sessionId = data.id;
+                        startSessionTimer(data.loginTime);
 
                     } else {
 
                         isLoggedIn = 0;
                         sessionId = null;
                     }
-                    console.log("Login Status:", isLoggedIn);
-                    console.log("Session ID:", sessionId);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     var errors = JSON.parse(jqXHR.responseText).errors;
@@ -125,7 +192,7 @@
         function CheckBreakStatus() {
              $.ajax({
                 type: 'GET',
-                url: apiEndpoint + 'AgentSession/GetCurrentBreakByEmployeeId?EmployeeId=' + 1,
+                url: apiEndpoint + 'AgentSession/GetCurrentBreakByEmployeeId?EmployeeId=' + employeeId,
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 headers: {
@@ -229,6 +296,7 @@
                     if (data.succeeded) {
                         isLoggedIn = 0;
                         CheckLoginStatus();
+                        stopSessionTimer();
                         toastr.success(data.messages[0]);
                     }
                     else {

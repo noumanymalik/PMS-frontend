@@ -24,9 +24,10 @@ namespace PMS.UI.Pages.Authentication
             HttpContext.Session.SetString("View_Employee_Detail", "");
             HttpContext.Session.SetString("Edit_Employee_Information", "");
 
-            HttpContext.Session.SetString("AgentSession", "");
-            HttpContext.Session.SetString("AgentAttendance", "");
-            HttpContext.Session.SetString("AgentBreak", "");
+            HttpContext.Session.SetString("Agent_Session", "");
+            HttpContext.Session.SetString("Agent_Attendance", "");
+            HttpContext.Session.SetString("Agent_Break", "");
+            HttpContext.Session.SetString("Break_Approval", "");
 
             HttpContext.Session.SetString("Department", "");
             HttpContext.Session.SetString("Add_New_Department", "");

@@ -6,11 +6,11 @@
     var userRolesPermission = HasPermission.Get("User_Roles", context.HttpContext);
     var userPermission = HasPermission.Get("User_Permissions", context.HttpContext);
 
-    var agentSessionPermission = HasPermission.Get("AgentSession", context.HttpContext);
-    var agentAttendancePermission = HasPermission.Get("AgentAttendance", context.HttpContext);
-    var agentBreakPermission = HasPermission.Get("AgentBreak", context.HttpContext);
-
-
+    var agentSessionPermission = HasPermission.Get("Agent_Session", context.HttpContext);
+    var agentAttendancePermission = HasPermission.Get("Agent_Attendance", context.HttpContext);
+    var agentBreakPermission = HasPermission.Get("Agent_Break", context.HttpContext);
+    var agentBreakApprovalPermission = HasPermission.Get("Break_Approval", context.HttpContext);
+    
     var administrationPermission = HasPermission.Get("Administration", context.HttpContext);
     var teamStructurePermission = HasPermission.Get("Team_Structure", context.HttpContext);
     var DepartmentPermission = HasPermission.Get("Department", context.HttpContext);
@@ -81,24 +81,6 @@
                 </li>
             }
 
-            @if (agentSessionPermission)
-            {
-            <li class="submenu">
-                <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-user-clock fa-1-25x me-2"></i><span>Agent Session</span> <span class="menu-arrow"></span></a>
-                <ul>
-                    @if (agentAttendancePermission)
-                    {
-                        <li><a asp-page="/AgentSession/Index">Attendance</a></li>
-                    }
-                    @if (agentBreakPermission)
-                    {
-                        <li><a asp-page="/AgentBreak/Index">Breaks</a></li>
-                    }
-
-                </ul>
-            </li>
-            }
-
             @if (administrationPermission)
             {
             <li class="submenu">
@@ -127,6 +109,28 @@
                         
                 </ul>
             </li>
+            }
+            
+            @if (agentSessionPermission)
+            {
+                <li class="submenu">
+                    <a class="" href="javascript:void(0);"><i class="fa-solid fas fa-user-clock fa-1-25x me-2"></i><span>Agent Session</span> <span class="menu-arrow"></span></a>
+                    <ul>
+                        @if (agentAttendancePermission)
+                        {
+                            <li><a asp-page="/AgentSession/Index">Attendance</a></li>
+                        }
+                        @if (agentBreakPermission)
+                        {
+                            <li><a asp-page="/AgentBreak/Index">Breaks</a></li>
+                        }
+                        @if (agentBreakApprovalPermission)
+                        {
+                            <li><a asp-page="/AgentBreak/BreakApproval">Break Approval</a></li>
+                        }
+
+                    </ul>
+                </li>
             }
 
             @if (importPermission)
