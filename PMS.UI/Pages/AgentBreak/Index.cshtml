@@ -254,23 +254,127 @@
                     <!-- END BREAK - 6 BUTTONS -->
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-stop-circle text-danger me-2"></i>END BREAK</h6>
-                            <small class="text-muted" id="end-hint">Only your active break will be enabled</small>
+                            <h6 class="fw-bold text-dark mb-0">
+                                <i class="fas fa-stop-circle text-danger me-2"></i>
+                                END BREAK
+                            </h6>
+
+                            <small class="text-muted" id="end-hint">
+                                Only your active break will be enabled
+                            </small>
                         </div>
+
                         <div class="row g-3" id="end-break-row">
-                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-meal-outline w-100" data-break-id="1" data-break-name="Meal Break" disabled>END MEAL</button></div>
-                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-prayer-outline w-100" data-break-id="2" data-break-name="Prayer Break" disabled>END PRAYER</button></div>
-                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-bio-outline w-100" data-break-id="3" data-break-name="BIO Break" disabled>END BIO</button></div>
-                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-coaching-outline w-100" data-break-id="4" data-break-name="Coaching Break" disabled>END COACHING</button></div>
-                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-training-outline w-100" data-break-id="5" data-break-name="Training Break" disabled>END TRAINING</button></div>
-                            <div class="col-6 col-md-4 col-lg-2"><button class="btn btn-end-break c-huddle-outline w-100" data-break-id="6" data-break-name="Huddle Break" disabled>END HUDDLE</button></div>
+
+                            <!-- Meal -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <div class="text-center">
+                                    <button class="btn btn-end-break c-meal-outline w-100"
+                                            data-break-id="1"
+                                            data-break-name="Meal Break"
+                                            disabled>
+                                        END MEAL
+                                    </button>
+
+                                    <div class="break-time" id="end-time-1">
+                                        <i class="far fa-clock me-1"></i>
+                                        <span>00:00:00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Prayer -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <div class="text-center">
+                                    <button class="btn btn-end-break c-prayer-outline w-100"
+                                            data-break-id="2"
+                                            data-break-name="Prayer Break"
+                                            disabled>
+                                        END PRAYER
+                                    </button>
+
+                                    <div class="break-time" id="end-time-2">
+                                        <i class="far fa-clock me-1"></i>
+                                        <span>00:00:00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bio -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <div class="text-center">
+                                    <button class="btn btn-end-break c-bio-outline w-100"
+                                            data-break-id="3"
+                                            data-break-name="BIO Break"
+                                            disabled>
+                                        END BIO
+                                    </button>
+
+                                    <div class="break-time" id="end-time-3">
+                                        <i class="far fa-clock me-1"></i>
+                                        <span>00:00:00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Coaching -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <div class="text-center">
+                                    <button class="btn btn-end-break c-coaching-outline w-100"
+                                            data-break-id="4"
+                                            data-break-name="Coaching Break"
+                                            disabled>
+                                        END COACHING
+                                    </button>
+
+                                    <div class="break-time" id="end-time-4">
+                                        <i class="far fa-clock me-1"></i>
+                                        <span>00:00:00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Training -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <div class="text-center">
+                                    <button class="btn btn-end-break c-training-outline w-100"
+                                            data-break-id="5"
+                                            data-break-name="Training Break"
+                                            disabled>
+                                        END TRAINING
+                                    </button>
+
+                                    <div class="break-time" id="end-time-5">
+                                        <i class="far fa-clock me-1"></i>
+                                        <span>00:00:00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Huddle -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <div class="text-center">
+                                    <button class="btn btn-end-break c-huddle-outline w-100"
+                                            data-break-id="6"
+                                            data-break-name="Huddle Break"
+                                            disabled>
+                                        END HUDDLE
+                                    </button>
+
+                                    <div class="break-time" id="end-time-6">
+                                        <i class="far fa-clock me-1"></i>
+                                        <span>00:00:00</span>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
 
                 <div class="card-footer bg-light d-flex justify-content-between px-4">
                     <small class="text-muted">Session Start: <span id="session-start-time">-</span></small>
-                    <small class="text-muted">Current Break Time: <b id="current-break-timer">00:00:00</b></small>
+@*                     <small class="text-muted">Current Break Time: <b id="current-break-timer">00:00:00</b></small> *@
                 </div>
             </div>
         </div>
@@ -295,6 +399,7 @@
 
         $(document).ready(function () {
             debugger
+            GetSessionBreaksTime();
             CheckLoginStatus();
         });
 
@@ -324,25 +429,40 @@
                    date.getFullYear();
         }
 
-        function startBreakTimer(breakTime) {
+        function startBreakTimer(breakDuration, breakTypeId) {
 
             if (breakTimer) {
                 clearInterval(breakTimer);
             }
 
-            // API loginTime is UTC
-            // const start = new Date(breakTime + 'Z');
-            const start = breakTime instanceof Date
-                ? breakTime
-                : new Date(breakTime + 'Z');
+            const parts = breakDuration.split(':');
+
+            const initialHours = parseInt(parts[0], 10) || 0;
+            const initialMinutes = parseInt(parts[1], 10) || 0;
+            const initialSeconds = parseFloat(parts[2]) || 0;
+
+            const initialTotalSeconds =
+                (initialHours * 3600) +
+                (initialMinutes * 60) +
+                Math.floor(initialSeconds);
+
+            // This is the time when the current timer starts
+            const timerStart = new Date();
+
+            const timerElement = $('#end-time-' + breakTypeId + ' span');
 
             function updateTimer() {
 
                 const currentTime = new Date();
 
-                let totalSeconds = Math.floor(
-                    (currentTime - start) / 1000
+                // Seconds elapsed since API response was received
+                const elapsedSeconds = Math.floor(
+                    (currentTime - timerStart) / 1000
                 );
+
+                // Previous breaks + current break
+                let totalSeconds =
+                    initialTotalSeconds + elapsedSeconds;
 
                 if (totalSeconds < 0) {
                     totalSeconds = 0;
@@ -352,7 +472,7 @@
                 const minutes = Math.floor((totalSeconds % 3600) / 60);
                 const seconds = totalSeconds % 60;
 
-                $('#current-break-timer').text(
+                timerElement.text(
                     String(hours).padStart(2, '0') + ':' +
                     String(minutes).padStart(2, '0') + ':' +
                     String(seconds).padStart(2, '0')
@@ -398,7 +518,7 @@
                         );
 
                         enableStartBreakButtons();
-                        CheckBreakStatus();
+                        CheckCurrentBreakStatus();
                     } 
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
@@ -412,7 +532,49 @@
             });
         }
 
-        function CheckBreakStatus() {
+        function formatTimeSpan(duration) {
+
+            if (!duration) {
+                return '00:00:00';
+            }
+
+            const parts = duration.split(':');
+
+            const hours = parseInt(parts[0], 10) || 0;
+            const minutes = parseInt(parts[1], 10) || 0;
+            const seconds = Math.floor(parseFloat(parts[2])) || 0;
+
+            return String(hours).padStart(2, '0') + ':' +
+                   String(minutes).padStart(2, '0') + ':' +
+                   String(seconds).padStart(2, '0');
+        }
+
+        function GetSessionBreaksTime() {
+             $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'AgentSession/GetBreaksByEmployeeId?EmployeeId=' + employeeId,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (data) {
+                    $.each(data, function (index, item) {
+                        $('#end-time-' + item.breakTypeId + ' span').text(formatTimeSpan(item.duration));
+                    });
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    var errors = JSON.parse(jqXHR.responseText).errors;
+                    $.each(jqXHR.responseJSON.errors, function (field, message) {
+                        toastr.error(message);
+                    });
+                }
+            }).done(function (result) {
+                console.log(result);
+            });
+        }
+
+        function CheckCurrentBreakStatus() {
              $.ajax({
                 type: 'GET',
                 url: apiEndpoint + 'AgentSession/GetCurrentBreakByEmployeeId?EmployeeId=' + employeeId,
@@ -425,7 +587,7 @@
                     debugger
                     disableStartBreakButtons();
                     enableEndBreakButton(data.breakTypeId);
-                    startBreakTimer(data.startTime);
+                    startBreakTimer(data.duration, data.breakTypeId);
 
                     breakTypeId = data.breakTypeId;
 
@@ -473,7 +635,8 @@
                         disableStartBreakButtons();
                         enableEndBreakButton(breakId);
                         breakTypeId = breakId;
-                        startBreakTimer(new Date());
+                        CheckCurrentBreakStatus();
+                        // startBreakTimer(new Date(), breakId);
                         toastr.success(data.messages[0]);
                     }
                     else {
@@ -490,9 +653,6 @@
             }).done(function (result) {
                 console.log(result);
             });
-
-            // console.log('Break ID:', breakId);
-            // console.log('Break Name:', breakName);
         });
 
         $('.btn-end-break').on('click', function () {
@@ -539,16 +699,7 @@
             }).done(function (result) {
                 console.log(result);
             });
-
-            // console.log('Break ID:', breakId);
-            // console.log('Break Name:', breakName);
         });
-
-
-          
-
-        
-
 
     </script>
 

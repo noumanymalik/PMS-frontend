@@ -245,7 +245,7 @@
                         data: 'sessionDate',
                         width: '5%',
                         render: function (data) {
-                            return moment.utc(data).format('MM/DD/YYYY');
+                            return moment.utc(data).utcOffset(5).format('MM/DD/YYYY');
                         }
                     },
                     { data: 'employeeCode', width: '5%' },
@@ -255,17 +255,40 @@
                         data: 'startTime',
                         width: '7%',
                         render: function (data) {
-                            return moment.utc(data).format('hh:mm:ss A');
+                            return moment.utc(data).utcOffset(5).format('hh:mm:ss A');
                         }
                     },
                     {
                         data: 'endTime',
                         width: '7%',
                         render: function (data) {
-                            return moment.utc(data).format('hh:mm:ss A');
+                            return moment.utc(data).utcOffset(5).format('hh:mm:ss A');
                         }
                     },
-                    { data: 'durationMinutes', width: '5%' },
+                    {
+                        data: null,
+                        width: '7%',
+                        render: function (data, type, row) {
+
+                            if (!row.startTime || !row.endTime) {
+                                return '00:00:00';
+                            }
+
+                            const start = moment.utc(row.startTime);
+                            const end = moment.utc(row.endTime);
+
+                            const durationSeconds = end.diff(start, 'seconds');
+
+                            const hours = Math.floor(durationSeconds / 3600);
+                            const minutes = Math.floor((durationSeconds % 3600) / 60);
+                            const seconds = durationSeconds % 60;
+
+                            return String(hours).padStart(2, '0') + ':' +
+                                   String(minutes).padStart(2, '0') + ':' +
+                                   String(seconds).padStart(2, '0');
+                        }
+                    },
+                    // { data: 'durationMinutes', width: '5%' },
                     {
                          data: 'id',
                          title: 'Action(s)',
