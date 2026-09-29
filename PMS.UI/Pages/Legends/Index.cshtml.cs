@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -6,6 +7,7 @@ using PMS.UI.Models.ViewModels.Transport;
 
 namespace PMS.UI.Pages.Legends
 {
+    [Authorize]
     public class IndexModel : PageModel
     {
         public async Task<PartialViewResult> OnGetCreateNewLegend()

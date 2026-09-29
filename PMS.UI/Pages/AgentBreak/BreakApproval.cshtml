@@ -17,6 +17,8 @@
 @section HeadBlock {
     <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
     <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+    <link href="~/lib/select2-bootstrap-5-theme/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+    <link href="~/lib/bootstrap-daterangepicker/daterangepicker.min.css" rel="stylesheet">
 }
 
 <div class="page-header">
@@ -36,6 +38,44 @@
                         <div class="col-sm-4">
                             <h4>Breaks for Approval</h4>
                         </div>
+                    </div>
+                </div>
+
+                <div class="table-filter">
+                    <div class="mb-1">
+                        <nav class="navbar navbar-light filter_inputs" style="background-color: transparent;">
+                            <form asp-page-handler="Search" method="post" class="col-12">
+
+                                <div class="row align-items-center">
+                                    <div class="row col-sm-10">
+
+                                        <div class="filter-group col-sm-4 col-xs-6">
+                                            <label>Date</label>
+                                            <div id="divDateRange" class="input-group">
+                                                <input id="txtDateRange" type="text" class="form-control date-range" placeholder="Select Date Range">
+                                                <div class="input-group-text">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="filter-group col-sm-4 col-xs-6">
+                                            <label class="control-label">Employees</label>
+                                            <select class="form-control select2 ddl-Employees">
+                                                <option>Choose</option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-sm-2 mt-auto pt-1">
+                                        <button id="btnSearchData" class="input-group-text shadow-none px-4 btn btn-dark"><i class="fa fa-search"></i></button>
+                                    </div>
+
+                                </div>
+
+                            </form>
+                        </nav>
                     </div>
                 </div>
 
@@ -76,6 +116,7 @@
     <script type="text/javascript" src="~/lib/datatables.net-bs5/dataTables.bootstrap5.min.js"></script>
     <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
     <script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+    <script type="text/javascript" src="~/lib/bootstrap-daterangepicker/daterangepicker.min.js"></script>
 
     <script type="text/javascript">
         $('a[href="/AgentBreak/BreakApproval"]').addClass('active');
@@ -83,9 +124,90 @@
         var apiEndpoint = '@apiEndpoint';
         var employeeId = '@employeeId';
 
+        var fromDate = null;
+        var toDate = null;
+        var agentId = null;
+
+        var isDateSelected = false;
+
         $(document).ready(function () {
              loadData();
+             initEmployees();
         });
+
+        $(function () {
+            $('#divDateRange').on('apply.daterangepicker', function (ev, picker) {
+
+                fromDate = picker.startDate.format('MM-DD-YYYY');
+                toDate = picker.endDate.format('MM-DD-YYYY');
+
+                isDateSelected = true;
+            });
+
+            $('#btnSearchData').on('click', function (e) {
+                e.preventDefault();
+
+                if (!isDateSelected) {
+                    fromDate = null;
+                    toDate = null;
+                }
+
+                loadData();
+            });
+
+            $(".ddl-Employees").change(function () {
+                agentId = $(this).val() || null;
+            });
+
+            var start = moment().subtract(1, 'days');
+            var end = moment();
+
+            function cb(start, end) {
+                $('#divDateRange input.date-range').val(start.format('D MMM, YYYY') + ' - ' + end.format('D MMM, YYYY'));
+            }
+
+            $('#divDateRange').daterangepicker({
+                startDate: start,
+                endDate: end,
+                locale: {
+                    monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                    monthNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                },
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }
+            }, cb);
+        });
+
+        function initEmployees() {
+            return $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'Employee/GetAll',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                headers: {
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                },
+                success: function (response) {
+
+                    var result = response.data.map(function (item) {
+                        return { id: item.id, text: item.name };
+                    });
+
+                    $('.ddl-Employees').select2({
+                        data: result,
+                        placeholder: 'Choose',
+                        theme: 'bootstrap-5',
+                        width: '100%'
+                    });
+                }
+            });
+        }
 
         $(document).on('click', '.approve-btn', function (event) {
             event.preventDefault();
@@ -204,7 +326,7 @@
                 pageLength: @pageSize,
 
                 ajax: {
-                     url: apiEndpoint + 'AgentSession/GetBreaksListBySupervisorId?SupervisorId= ' + employeeId + ' &ApprovalTypeId=1',
+                    url: apiEndpoint + 'AgentSession/GetBreaksListBySupervisorId',
                      contentType: 'application/json',
                      headers: {
                        'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
@@ -216,6 +338,9 @@
                         return {
                             PageIndex: pageIndex,
                             PageSize: @pageSize,
+                            fromDate: fromDate,
+                            toDate: toDate,
+                            employeeId: agentId,
                             supervisorId: employeeId,
                             ApprovalTypeId: 1
                         };

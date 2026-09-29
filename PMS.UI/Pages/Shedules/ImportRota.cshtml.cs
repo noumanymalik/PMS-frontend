@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OfficeOpenXml;
 using System.Data;
 
 namespace PMS.UI.Pages.Shedules
 {
+    [Authorize]
     public class ImportRotaModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;

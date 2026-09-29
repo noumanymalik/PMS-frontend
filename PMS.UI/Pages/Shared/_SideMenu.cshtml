@@ -10,6 +10,7 @@
     var agentAttendancePermission = HasPermission.Get("Agent_Attendance", context.HttpContext);
     var agentBreakPermission = HasPermission.Get("Agent_Break", context.HttpContext);
     var agentBreakApprovalPermission = HasPermission.Get("Break_Approval", context.HttpContext);
+    var agentStatusPermission = HasPermission.Get("Agent_Status", context.HttpContext);
     
     var administrationPermission = HasPermission.Get("Administration", context.HttpContext);
     var teamStructurePermission = HasPermission.Get("Team_Structure", context.HttpContext);
@@ -49,6 +50,7 @@
 
     var reportsPermission = HasPermission.Get("Reports", context.HttpContext);
     var triumvirateTangoOfTelephonyReportPermission = HasPermission.Get("TriumvirateTangoOfTelephonyReport", context.HttpContext);
+    var productivityandTimeMatrixReportPermission = HasPermission.Get("ProductivityandTimeMatrixReport", context.HttpContext);
   
     var policesPermission = HasPermission.Get("Polices", context.HttpContext);
     var policiyDocumentsPermisssion = HasPermission.Get("Policiy_Documents", context.HttpContext);
@@ -127,6 +129,10 @@
                         @if (agentBreakApprovalPermission)
                         {
                             <li><a asp-page="/AgentBreak/BreakApproval">Break Approval</a></li>
+                        }
+                        @if (agentStatusPermission)
+                        {
+                            <li><a asp-page="/AgentSession/Status">Agent Status</a></li>
                         }
 
                     </ul>
@@ -293,6 +299,11 @@
                         {
                             <li><a asp-page="/Reports/TriumvirateTangoOfTelephony">TriumvirateTangoOfTelephony</a></li>
                         }
+                        @if (productivityandTimeMatrixReportPermission)
+                        {
+                            <li><a asp-page="/Reports/DailyProductivityandTimeAllocationMatrix">Daily Productivity and Time Allocation Matrix</a></li>
+                        }
+
                     </ul>
                 </li>
             }

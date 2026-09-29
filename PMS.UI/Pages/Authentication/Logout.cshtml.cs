@@ -28,6 +28,7 @@ namespace PMS.UI.Pages.Authentication
             HttpContext.Session.SetString("Agent_Attendance", "");
             HttpContext.Session.SetString("Agent_Break", "");
             HttpContext.Session.SetString("Break_Approval", "");
+            HttpContext.Session.SetString("Agent_Status", "");
 
             HttpContext.Session.SetString("Department", "");
             HttpContext.Session.SetString("Add_New_Department", "");
@@ -75,6 +76,7 @@ namespace PMS.UI.Pages.Authentication
 
             HttpContext.Session.SetString("Reports", "");
             HttpContext.Session.SetString("TriumvirateTangoOfTelephonyReport", "");
+            HttpContext.Session.SetString("ProductivityandTimeMatrixReport", "");
 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToPage("/Authentication/Login");

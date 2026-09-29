@@ -1,0 +1,1012 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+@model PMS.UI.Pages.AgentSession.StatusModel
+@{
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var pageSize = appSettings.Value.DefaultPageSize;
+}
+@using System.Security.Claims;
+@{
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+@section HeadBlock {
+    <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .vibrant-card {
+            border: 0 !important;
+            border-radius: 16px !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12) !important;
+            transition: all.25s ease !important;
+            cursor: pointer
+        }
+
+            .vibrant-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 16px 32px rgba(0,0,0,.18) !important
+            }
+
+            .vibrant-card.icon-box {
+                width: 52px;
+                height: 52px;
+                background: rgba(255,255,255,.18) !important;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px
+            }
+
+            .vibrant-card.label {
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                opacity: .9
+            }
+
+            .vibrant-card h3 {
+                font-size: 32px;
+                font-weight: 800
+            }
+
+        .card-total {
+            background-color: #1E3A8A !important;
+        }
+
+        .card-logged {
+            background-color: #065F46 !important;
+        }
+
+        .card-offline {
+            background-color: #991B1B !important;
+        }
+
+        .card-break {
+            background-color: #92400E !important;
+        }
+
+        .vibrant-card.active-filter {
+            outline: 3px solid #fff;
+            outline-offset: 2px;
+            transform: translateY(-4px)
+        }
+
+        .main-card {
+            border-radius: 18px !important;
+            overflow: hidden;
+            border: 0 !important;
+            box-shadow: 0 4px 24px rgba(0,0,0,.08) !important
+        }
+
+        .exec-header {
+            background-color: #0F172A !important;
+            color: #fff !important;
+            border: 0 !important;
+            padding: 20px 24px !important
+        }
+
+            .exec-header h5 {
+                color: #fff !important;
+                font-weight: 700
+            }
+
+            .exec-header small {
+                color: #94a3b8 !important;
+                transition: all .2s ease
+            }
+
+        #agent-status-table thead th {
+            background-color: #0F172A !important;
+            color: #fff !important;
+            font-weight: 700 !important;
+            font-size: 11px !important;
+            text-transform: uppercase !important;
+            letter-spacing: .08em !important;
+            padding: 16px 18px !important;
+            border: 0 !important;
+            white-space: nowrap;
+        }
+
+        #agent-status-table tbody td {
+            padding: 14px 18px !important;
+            border-bottom: 1px solid #f1f5f9 !important
+        }
+
+        #agent-status-table tbody tr:hover {
+            background: #f8fafc !important
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700
+        }
+
+        .s-online {
+            background-color: #065F46;
+            color: #fff
+        }
+
+        .s-break {
+            background-color: #92400E;
+            color: #fff
+        }
+
+        .s-off {
+            background-color: #991B1B;
+            color: #fff
+        }
+    </style>
+}
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<div class="container-fluid mt-4">
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6"><div class="card vibrant-card card-total summary-card" data-status="all" data-title="Aggregate Executive Complement"><div class="card-body d-flex align-items-center"><div class="icon-box me-3"><i class="fas fa-users"></i></div><div><div class="label">Aggregate Executive Complement</div><h3 class="mb-0 mt-1" id="total-agents">0</h3></div></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card vibrant-card card-logged summary-card" data-status="Operational" data-title="Operational & Actively Engaged"><div class="card-body d-flex align-items-center"><div class="icon-box me-3"><i class="fas fa-headset"></i></div><div><div class="label">Operational & Actively Engaged</div><h3 class="mb-0 mt-1" id="logged-in-agents">0</h3></div></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card vibrant-card card-offline summary-card" data-status="Offline" data-title="Disengaged Personnel"><div class="card-body d-flex align-items-center"><div class="icon-box me-3"><i class="fas fa-user-times"></i></div><div><div class="label">Disengaged Personnel</div><h3 class="mb-0 mt-1" id="not-logged-in-agents">0</h3></div></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card vibrant-card card-break summary-card" data-status="OnBreak" data-title="Under Interim Recess"><div class="card-body d-flex align-items-center"><div class="icon-box me-3"><i class="fas fa-coffee"></i></div><div><div class="label">Under Interim Recess</div><h3 class="mb-0 mt-1" id="break-agents">0</h3></div></div></div></div>
+    </div>
+
+    <div class="card main-card">
+        <div class="card-header exec-header"><div class="d-flex justify-content-between align-items-center"><div><h5 class="mb-1"><i class="fas fa-user-clock me-2"></i>Real-Time Executive Deployment Matrix</h5><small id="matrix-subtitle">Live agent login and break status</small></div><button type="button" class="btn btn-sm" id="btn-refresh" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:10px"><i class="fas fa-sync-alt me-1"></i> Refresh</button></div></div>
+        <div class="card-body p-0"><div class="table-responsive"><table id="agent-status-table" class="table table-hover align-middle w-100 mb-0"><thead><tr><th>SALES EXECUTIVE</th><th>PERSONNEL CODE</th><th>DEPLOYMENT STATUS</th><th>COMMENCEMENT TIME</th><th>INTERMISSION TYPE</th><th>RECESS COMMENCED</th><th>ACTIVE SESSION TENURE</th></tr></thead><tbody></tbody></table></div></div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script src="~/lib/datatables.net-bs5/dataTables.bootstrap5.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/moment.js/moment.min.js"></script>
+    <script>
+        $('a[href="/AgentSession/Status"]').addClass('active');
+        var apiEndpoint='@apiEndpoint';
+        var employeeId='@employeeId';
+        var oTable=null;
+        var activeStatusFilter = 'all';
+        var defaultSubtitle = 'Live agent login and break status';
+
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+            if(settings.nTable.getAttribute('id')!== 'agent-status-table') return true;
+            if(activeStatusFilter === 'all' || !activeStatusFilter) return true;
+            var rowData = oTable ? oTable.row(dataIndex).data() : null;
+            if(!rowData) return true;
+            var s = rowData.status;
+            if(activeStatusFilter === 'Operational'){
+                return s === 'LoggedIn' || s === 'OnBreak';
+            }
+            return s === activeStatusFilter;
+        });
+
+        $(document).ready(function(){ loadData(); });
+
+        function loadData(){
+            try{
+                if($.fn.DataTable.isDataTable('#agent-status-table')){
+                    $('#agent-status-table').DataTable().clear().destroy();
+                }
+                oTable = $('#agent-status-table').DataTable(getDtOptions());
+            }catch(e){ console.error('DataTable init failed', e); }
+        }
+
+        $(document).on('click','#btn-refresh',function(e){
+            e.preventDefault();
+            activeStatusFilter='all';
+            $('.summary-card').removeClass('active-filter');
+            $('#matrix-subtitle').text(defaultSubtitle); // Reset subtitle on refresh
+            loadData();
+        });
+
+        $(document).on('click','.summary-card',function(){
+            if(!oTable) return;
+            var status=$(this).data('status');
+            var title=$(this).data('title') || $(this).find('.label').text(); // Get card heading
+
+            activeStatusFilter = status;
+
+            $('.summary-card').removeClass('active-filter');
+            $(this).addClass('active-filter');
+
+            // UPDATE SUBTITLE - This is the new feature you asked for
+            if(status === 'all'){
+                $('#matrix-subtitle').text(title); // Shows "Aggregate Executive Complement"
+            } else {
+                $('#matrix-subtitle').text(title); // Shows clicked card name like "Operational & Actively Engaged"
+            }
+
+            oTable.draw();
+        });
+
+        function getDtOptions(){
+         return{
+          destroy:true,processing:false,serverSide:false,ordering:true,searching:true,autoWidth:false,lengthChange:false,pageLength:@pageSize,
+          ajax:{
+            url: apiEndpoint + 'AgentSession/GetDashboardDataBySupervisorId?SupervisorId=' + employeeId,
+            contentType:'application/json',
+            headers:{ 'Authorization':'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val() },
+            data:function(data,settings){
+                var api = new $.fn.dataTable.Api(settings);
+                var pageIndex = api.page.info().page + 1;
+                return { PageIndex: pageIndex, PageSize: @pageSize, SupervisorId: employeeId };
+            },
+            dataSrc:function(json){
+                if(!json.data || json.data.length===0){
+                    $('#total-agents').text(0); $('#logged-in-agents').text(0); $('#not-logged-in-agents').text(0); $('#break-agents').text(0);
+                    return [];
+                }
+                var dashboard=json.data[0];
+                var allEmps = dashboard.employees || [];
+                var total = dashboard.totalAgents || allEmps.length;
+                var offlineCount = allEmps.filter(x=>x.status==='Offline').length;
+                var onBreakCount = allEmps.filter(x=>x.status==='OnBreak').length;
+                var loggedInOnly = allEmps.filter(x=>x.status==='LoggedIn').length;
+                var operationalCount = loggedInOnly + onBreakCount;
+
+                $('#total-agents').text(total);
+                $('#logged-in-agents').text(operationalCount);
+                $('#not-logged-in-agents').text(offlineCount);
+                $('#break-agents').text(onBreakCount);
+                return allEmps;
+            }
+          },
+          columns:[
+            {data:'name',render:function(d){return d||'-';}},
+            {data:'code',render:function(d){return d||'-';}},
+            {data:'status',render:function(data){
+                if(data==='LoggedIn') return '<span class="status-badge s-online"><i class="fas fa-circle" style="font-size:7px"></i> Online</span>';
+                if(data==='OnBreak') return '<span class="status-badge s-break"><i class="fas fa-coffee"></i> On Break</span>';
+                if(data==='Offline') return '<span class="status-badge s-off"><i class="fas fa-circle" style="font-size:7px"></i> Offline</span>';
+                return '<span class="badge bg-light text-dark">'+(data||'-')+'</span>';
+            }},
+            {data:'loginTime',render:function(data){
+                if(!data) return '<span class="text-muted">-</span>';
+                var parts=data.split(':'); if(parts.length<2) return data;
+                var hour=parseInt(parts[0],10); var minute=parseInt(parts[1],10); var second=parts.length>2?parseInt(parts[2],10):0;
+                hour+=5; if(hour>=24) hour-=24; var period=hour>=12?'PM':'AM'; hour=hour%12; if(hour===0) hour=12;
+                return String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')+':'+String(second).padStart(2,'0')+' '+period;
+            }},
+            {data:'currentBreak',render:function(data){ return!data?'<span class="text-muted">-</span>':'<span class="fw-semibold">'+data+'</span>'; }},
+            {data:'breakStarted',render:function(data){
+                if(!data) return '<span class="text-muted">-</span>';
+                var parts=data.split(':'); if(parts.length<2) return data;
+                var hour=parseInt(parts[0]); var minute=parts[1]; var second=parts[2]||'00';
+                var period=hour>=12?'PM':'AM'; hour=hour%12; if(hour===0) hour=12;
+                return String(hour).padStart(2,'0')+':'+minute+':'+second.substring(0,2)+' '+period;
+            }},
+            {data:'sessionDuration',render:function(data){
+                if(!data) return '<span class="text-muted">-</span>';
+                var parts=data.split(':'); if(parts.length>=3){ return '<span class="fw-bold">'+parts[0]+':'+parts[1]+':'+parts[2].substring(0,2)+'</span>'; }
+                return '<span class="fw-bold">'+data+'</span>';
+            }}
+          ],
+          language:{searchPlaceholder:"Search...",search:"",lengthMenu:"_MENU_ items/page"}
+         };
+        }
+    </script>
+}
+@* @page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+@model PMS.UI.Pages.AgentSession.StatusModel
+@{
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var pageSize = appSettings.Value.DefaultPageSize;
+}
+@using System.Security.Claims;
+@{
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+@section HeadBlock {
+    <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+    <style>
+        /* ===== EXACT STYLE FROM YOUR ATTACHED HTML - SOLID COLORS ===== */
+        .vibrant-card {
+            border: 0 !important;
+            border-radius: 16px !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12) !important;
+            transition: all.25s ease !important;
+            cursor: pointer
+        }
+
+            .vibrant-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 16px 32px rgba(0,0,0,.18) !important
+            }
+
+            .vibrant-card.icon-box {
+                width: 52px;
+                height: 52px;
+                background: rgba(255,255,255,.18) !important;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px
+            }
+
+            .vibrant-card.label {
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                opacity: .9
+            }
+
+            .vibrant-card h3 {
+                font-size: 32px;
+                font-weight: 800
+            }
+
+        /* SOLID BACKGROUNDS - IDENTICAL TO ATTACHED FILE */
+        .card-total {
+            background-color: #1E3A8A !important;
+        }
+
+        .card-logged {
+            background-color: #065F46 !important;
+        }
+
+        .card-offline {
+            background-color: #991B1B !important;
+        }
+
+        .card-break {
+            background-color: #92400E !important;
+        }
+
+        .main-card {
+            border-radius: 18px !important;
+            overflow: hidden;
+            border: 0 !important;
+            box-shadow: 0 4px 24px rgba(0,0,0,.08) !important
+        }
+
+        .exec-header {
+            background-color: #0F172A !important;
+            color: #fff !important;
+            border: 0 !important;
+            padding: 20px 24px !important
+        }
+
+            .exec-header h5 {
+                color: #fff !important;
+                font-weight: 700
+            }
+
+            .exec-header small {
+                color: #94a3b8 !important
+            }
+
+        /* SOLID COLOR FOR HEADINGS: Agent -> Session Duration - IDENTICAL */
+        #agent-status-table thead th {
+            background-color: #0F172A !important;
+            color: #fff !important;
+            font-weight: 700 !important;
+            font-size: 11px !important;
+            text-transform: uppercase !important;
+            letter-spacing: .08em !important;
+            padding: 16px 18px !important;
+            border: 0 !important;
+            white-space: nowrap;
+        }
+
+        #agent-status-table tbody td {
+            padding: 14px 18px !important;
+            border-bottom: 1px solid #f1f5f9 !important
+        }
+
+        #agent-status-table tbody tr:hover {
+            background: #f8fafc !important
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700
+        }
+
+        .s-online {
+            background-color: #065F46;
+            color: #fff
+        }
+
+        .s-break {
+            background-color: #92400E;
+            color: #fff
+        }
+
+        .s-off {
+            background-color: #991B1B;
+            color: #fff
+        }
+    </style>
+}
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<div class="container-fluid mt-4">
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6"><div class="card vibrant-card card-total summary-card" data-status="all"><div class="card-body d-flex align-items-center"><div class="icon-box me-3"><i class="fas fa-users"></i></div><div><div class="label">Aggregate Executive Complement</div><h3 class="mb-0 mt-1" id="total-agents">0</h3></div></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card vibrant-card card-logged summary-card" data-status="LoggedIn"><div class="card-body d-flex align-items-center"><div class="icon-box me-3"><i class="fas fa-headset"></i></div><div><div class="label">Operational & Actively Engaged</div><h3 class="mb-0 mt-1" id="logged-in-agents">0</h3></div></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card vibrant-card card-offline summary-card" data-status="Offline"><div class="card-body d-flex align-items-center"><div class="icon-box me-3"><i class="fas fa-user-times"></i></div><div><div class="label">Disengaged Personnel</div><h3 class="mb-0 mt-1" id="not-logged-in-agents">0</h3></div></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card vibrant-card card-break summary-card" data-status="OnBreak"><div class="card-body d-flex align-items-center"><div class="icon-box me-3"><i class="fas fa-coffee"></i></div><div><div class="label">Under Interim Recess</div><h3 class="mb-0 mt-1" id="break-agents">0</h3></div></div></div></div>
+    </div>
+
+    <div class="card main-card">
+        <div class="card-header exec-header"><div class="d-flex justify-content-between align-items-center"><div><h5 class="mb-1"><i class="fas fa-user-clock me-2"></i>Real-Time Executive Deployment Matrix</h5><small>Live agent login and break status</small></div><button type="button" class="btn btn-sm" id="btn-refresh" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:10px"><i class="fas fa-sync-alt me-1"></i> Refresh</button></div></div>
+        <div class="card-body p-0"><div class="table-responsive"><table id="agent-status-table" class="table table-hover align-middle w-100 mb-0"><thead><tr><th>Sales Executive</th><th>Personnel Code</th><th>Deployment Status</th><th>Commencement Time</th><th>Intermission Type</th><th>Recess Commenced</th><th>Active Session Tenure</th></tr></thead><tbody></tbody></table></div></div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script src="~/lib/datatables.net-bs5/dataTables.bootstrap5.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/moment.js/moment.min.js"></script>
+    <script>
+        $('a[href="/AgentSession/Status"]').addClass('active');
+        var apiEndpoint='@apiEndpoint';
+        var employeeId='@employeeId';
+        var oTable=null;
+
+        $(document).ready(function(){ loadData(); });
+
+        function loadData(){
+            try{
+                if($.fn.DataTable.isDataTable('#agent-status-table')){
+                    $('#agent-status-table').DataTable().clear().destroy();
+                }
+                oTable = $('#agent-status-table').DataTable(getDtOptions());
+            }catch(e){ console.error('DataTable init failed', e); }
+        }
+
+        $(document).on('click','#btn-refresh',function(e){ e.preventDefault(); loadData(); });
+
+        $(document).on('click','.summary-card',function(){
+            if(!oTable) return;
+            var status=$(this).data('status');
+            if(status==='all'){ oTable.column(2).search('').draw(); }
+            else { oTable.column(2).search(status).draw(); }
+        });
+
+        function getDtOptions(){
+         return{
+          destroy:true,processing:false,serverSide:false,ordering:true,searching:true,autoWidth:false,lengthChange:false,pageLength:@pageSize,
+          ajax:{
+            url: apiEndpoint + 'AgentSession/GetDashboardDataBySupervisorId?SupervisorId=' + employeeId,
+            contentType:'application/json',
+            headers:{ 'Authorization':'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val() },
+            data:function(data,settings){
+                var api = new $.fn.dataTable.Api(settings);
+                var pageIndex = api.page.info().page + 1;
+                return { PageIndex: pageIndex, PageSize: @pageSize, SupervisorId: employeeId };
+            },
+            dataSrc:function(json){
+                if(!json.data || json.data.length===0){
+                    $('#total-agents').text(0); $('#logged-in-agents').text(0); $('#not-logged-in-agents').text(0); $('#break-agents').text(0);
+                    return [];
+                }
+                var dashboard=json.data[0];
+                $('#total-agents').text(dashboard.totalAgents);
+                $('#logged-in-agents').text(dashboard.loggedIn);
+                $('#not-logged-in-agents').text(dashboard.notLoggedIn);
+                $('#break-agents').text(dashboard.onBreak);
+                return dashboard.employees || [];
+            }
+          },
+          columns:[
+            {data:'name',width:'20%'},
+            {data:'code',width:'10%'},
+            {data:'status',width:'13%', render:function(data){
+                if(data==='LoggedIn') return '<span class="status-badge s-online"><i class="fas fa-circle" style="font-size:7px"></i> Logged In</span>';
+                if(data==='OnBreak') return '<span class="status-badge s-break"><i class="fas fa-coffee"></i> On Break</span>';
+                if(data==='Offline') return '<span class="status-badge s-off"><i class="fas fa-circle" style="font-size:7px"></i> Offline</span>';
+                return '<span class="badge bg-light text-dark">'+(data||'-')+'</span>';
+            }},
+            {data:'loginTime',width:'12%', render:function(data){
+                if(!data) return '<span class="text-muted">-</span>';
+                var parts=data.split(':'); if(parts.length<2) return data;
+                var hour=parseInt(parts[0],10); var minute=parseInt(parts[1],10); var second=parts.length>2?parseInt(parts[2],10):0;
+                hour+=5; if(hour>=24) hour-=24; var period=hour>=12?'PM':'AM'; hour=hour%12; if(hour===0) hour=12;
+                return String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')+':'+String(second).padStart(2,'0')+' '+period;
+            }},
+            {data:'currentBreak',width:'15%', render:function(data){ return!data?'<span class="text-muted">-</span>':'<span class="fw-semibold">'+data+'</span>'; }},
+            {data:'breakStarted',width:'13%', render:function(data){
+                if(!data) return '<span class="text-muted">-</span>';
+                var parts=data.split(':'); if(parts.length<2) return data;
+                var hour=parseInt(parts[0]); var minute=parts[1]; var second=parts[2]||'00';
+                var period=hour>=12?'PM':'AM'; hour=hour%12; if(hour===0) hour=12;
+                return String(hour).padStart(2,'0')+':'+minute+':'+second.substring(0,2)+' '+period;
+            }},
+            {data:'sessionDuration',width:'17%', render:function(data){
+                if(!data) return '<span class="text-muted">-</span>';
+                var parts=data.split(':'); if(parts.length>=3){ return '<span class="fw-bold">'+parts[0]+':'+parts[1]+':'+parts[2].substring(0,2)+'</span>'; }
+                return '<span class="fw-bold">'+data+'</span>';
+            }}
+          ],
+          language:{searchPlaceholder:"Search...",search:"",lengthMenu:"_MENU_ items/page"}
+         };
+        }
+    </script>
+} *@
+
+@* @page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+@model PMS.UI.Pages.AgentSession.StatusModel
+@{
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var pageSize = appSettings.Value.DefaultPageSize;
+}
+
+@using System.Security.Claims;
+@{
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+@section HeadBlock {
+    <link href="~/lib/datatables.net-bs5/datatables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+}
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<div class="container-fluid mt-4">
+
+    <!-- ========================= -->
+    <!-- Summary Cards -->
+    <!-- ========================= -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- Total Agents -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm summary-card" data-status="all" style="cursor:pointer;">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded p-3 me-3 bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-users fa-lg"></i>
+                    </div>
+
+                    <div>
+                        <div class="text-muted small">
+                            Total Agents
+                        </div>
+
+                        <h3 class="mb-0 mt-1" id="total-agents">
+                            0
+                        </h3>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Logged In -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm summary-card" data-status="Logged In" style="cursor:pointer;">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded p-3 me-3 bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-headset fa-lg"></i>
+                    </div>
+
+                    <div>
+                        <div class="text-muted small">
+                            Logged In
+                        </div>
+
+                        <h3 class="mb-0 mt-1 text-success" id="logged-in-agents">
+                            0
+                        </h3>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Not Logged In -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm summary-card" data-status="Not Logged In" style="cursor:pointer;">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded p-3 me-3 bg-danger bg-opacity-10 text-danger">
+                        <i class="fas fa-user-times fa-lg"></i>
+                    </div>
+
+                    <div>
+                        <div class="text-muted small">
+                            Not Logged In
+                        </div>
+
+                        <h3 class="mb-0 mt-1 text-danger" id="not-logged-in-agents">
+                            0
+                        </h3>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- On Break -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm summary-card" data-status="On Break" style="cursor:pointer;">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded p-3 me-3 bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-coffee fa-lg"></i>
+                    </div>
+
+                    <div>
+                        <div class="text-muted small">
+                            On Break
+                        </div>
+
+                        <h3 class="mb-0 mt-1 text-warning" id="break-agents">
+                            0
+                        </h3>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- Agent Attendance -->
+    <!-- ========================= -->
+
+    <div class="card border-0 shadow-sm">
+
+        <!-- Header -->
+        <div class="card-header bg-white border-0 p-4">
+            <div class="d-flex justify-content-between  align-items-center">
+                <div>
+                    <h5 class="mb-1">
+                        <i class="fas fa-user-clock text-primary me-2"></i>
+                        Agent Attendance Status
+                    </h5>
+
+                    <small class="text-muted">
+                        Live agent login and break status
+                    </small>
+
+                </div>
+
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btn-refresh">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card-body pt-0">
+            <div class="table-responsive">
+                <table id="agent-status-table" class="table table-hover align-middle w-100">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Employee Code</th>
+                            <th>Status</th>
+                            <th>Login Time</th>
+                            <th>Current Break</th>
+                            <th>Break Started</th>
+                            <th>Session Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/lib/datatables.net-bs5/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+    <script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+
+    <script type="text/javascript">
+        $('a[href="/AgentSession/Status"]').addClass('active');
+
+        var apiEndpoint = '@apiEndpoint';
+        var employeeId = '@employeeId';
+
+        var $dg = {};
+        var oTable;
+
+        $(document).ready(function () {
+            loadData();
+        });
+
+        function loadData() {
+
+            if ($.fn.DataTable.isDataTable('#agent-status-table')) {
+                $('#agent-status-table').DataTable().clear().destroy();
+            }
+
+            oTable = $('#agent-status-table').DataTable(getDtOptions());
+        }
+
+         $(document).on('click', '#btn-refresh', function (event) {
+            event.preventDefault();
+            debugger
+            loadData();
+        });
+
+        function getDtOptions() {
+
+            return {
+                destroy: true,
+                processing: false,
+                serverSide: false,
+                ordering: true,
+                searching: true,
+                autoWidth: false,
+                lengthChange: false,
+                pageLength: @pageSize,
+
+                ajax: {
+                    url: apiEndpoint + 'AgentSession/GetDashboardDataBySupervisorId?SupervisorId=' + employeeId,
+
+                    contentType: 'application/json',
+
+                    headers: {
+                        'Authorization': 'Bearer ' +
+                            $('input:hidden[name="__RequestVerificationToken"]').val()
+                    },
+
+                    data: function (data, settings) {
+
+                        var api = new $.fn.dataTable.Api(settings);
+                        var pageIndex = api.page.info().page + 1;
+
+                        return {
+                            PageIndex: pageIndex,
+                            PageSize: @pageSize,
+                            SupervisorId: employeeId
+                        };
+                    },
+
+                    dataSrc: function (json) {
+
+                        // Your API response:
+                        // json.data[0] = dashboard
+                        // json.data[0].employees = employees
+
+                        if (!json.data || json.data.length === 0) {
+                            return [];
+                        }
+
+                        var dashboard = json.data[0];
+
+                        // Update dashboard cards
+                        $('#total-agents').text(dashboard.totalAgents);
+                        $('#logged-in-agents').text(dashboard.loggedIn);
+                        $('#not-logged-in-agents').text(dashboard.notLoggedIn);
+                        $('#break-agents').text(dashboard.onBreak);
+
+                        // DataTable rows
+                        return dashboard.employees || [];
+                    }
+                },
+
+                columns: [
+
+                    {
+                        data: 'name',
+                        width: '20%'
+                    },
+
+                    {
+                        data: 'code',
+                        width: '10%'
+                    },
+
+                    {
+                        data: 'status',
+                        width: '13%',
+
+                        render: function (data) {
+
+                            if (data === 'LoggedIn') {
+
+                                return '<span class="badge bg-success">' +
+                                    '<i class="fas fa-circle me-1"></i>' +
+                                    'Logged In' +
+                                    '</span>';
+                            }
+
+                            if (data === 'OnBreak') {
+
+                                return '<span class="badge bg-warning text-dark">' +
+                                    '<i class="fas fa-coffee me-1"></i>' +
+                                    'On Break' +
+                                    '</span>';
+                            }
+
+                            if (data === 'Offline') {
+
+                                return '<span class="badge bg-secondary">' +
+                                    '<i class="fas fa-circle me-1"></i>' +
+                                    'Offline' +
+                                    '</span>';
+                            }
+
+                            return '<span class="badge bg-light text-dark">' +
+                                (data || '-') +
+                                '</span>';
+                        }
+                    },
+
+                    {
+                        data: 'loginTime',
+                        width: '12%',
+
+                        render: function (data) {
+
+                            if (!data) {
+                                return '<span class="text-muted">-</span>';
+                            }
+
+                            // loginTime is UTC time-only, e.g. 13:59:39.188
+                            var parts = data.split(':');
+
+                            if (parts.length < 2) {
+                                return data;
+                            }
+
+                            var hour = parseInt(parts[0], 10);
+                            var minute = parseInt(parts[1], 10);
+                            var second = parts.length > 2
+                                ? parseInt(parts[2], 10)
+                                : 0;
+
+                            // Convert UTC -> Pakistan Time (UTC+5)
+                            hour += 5;
+
+                            if (hour >= 24) {
+                                hour -= 24;
+                            }
+
+                            var period = hour >= 12 ? 'PM' : 'AM';
+
+                            hour = hour % 12;
+
+                            if (hour === 0) {
+                                hour = 12;
+                            }
+
+                            return String(hour).padStart(2, '0') +
+                                ':' +
+                                String(minute).padStart(2, '0') +
+                                ':' +
+                                String(second).padStart(2, '0') +
+                                ' ' +
+                                period;
+                        }
+                    },
+
+                    {
+                        data: 'currentBreak',
+                        width: '15%',
+
+                        render: function (data) {
+
+                            if (!data) {
+                                return '<span class="text-muted">-</span>';
+                            }
+
+                            return '<span class="fw-semibold">' +
+                                data +
+                                '</span>';
+                        }
+                    },
+
+                    {
+                        data: 'breakStarted',
+                        width: '13%',
+
+                        render: function (data) {
+
+                            if (!data) {
+                                return '<span class="text-muted">-</span>';
+                            }
+
+                            // If API returns TimeOnly, e.g. 14:25:10
+                            var parts = data.split(':');
+
+                            if (parts.length < 2) {
+                                return data;
+                            }
+
+                            var hour = parseInt(parts[0]);
+                            var minute = parts[1];
+                            var second = parts[2] || '00';
+
+                            var period = hour >= 12 ? 'PM' : 'AM';
+
+                            hour = hour % 12;
+
+                            if (hour === 0) {
+                                hour = 12;
+                            }
+
+                            return String(hour).padStart(2, '0') +
+                                ':' +
+                                minute +
+                                ':' +
+                                second.substring(0, 2) +
+                                ' ' +
+                                period;
+                        }
+                    },
+
+                    {
+                        data: 'sessionDuration',
+                        width: '17%',
+
+                        render: function (data) {
+
+                            if (!data) {
+                                return '<span class="text-muted">-</span>';
+                            }
+
+                            // TimeSpan:
+                            // 06:11:49.2025963
+                            //
+                            // Display:
+                            // 06:11:49
+
+                            var parts = data.split(':');
+
+                            if (parts.length >= 3) {
+
+                                return '<span class="fw-bold">' +
+                                    parts[0] + ':' +
+                                    parts[1] + ':' +
+                                    parts[2].substring(0, 2) +
+                                    '</span>';
+                            }
+
+                            return '<span class="fw-bold">' +
+                                data +
+                                '</span>';
+                        }
+                    }
+                ],
+
+                language: {
+                    searchPlaceholder: "Search...",
+                    search: "",
+                    lengthMenu: "_MENU_ &nbsp;items/page"
+                }
+            };
+        }
+
+    </script>
+} *@

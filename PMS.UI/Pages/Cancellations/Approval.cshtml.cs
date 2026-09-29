@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -5,6 +6,7 @@ using PMS.UI.Models.ViewModels.Cancellation;
 
 namespace PMS.UI.Pages.Cancellations
 {
+    [Authorize]
     public class ApprovalModel : PageModel
     {
         public async Task<PartialViewResult> OnGetViewQANotesAsync(int id)

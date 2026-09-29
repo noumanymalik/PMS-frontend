@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OfficeOpenXml;
@@ -5,6 +6,7 @@ using System.Data;
 
 namespace PMS.UI.Pages.Imports
 {
+    [Authorize]
     public class CallSummaryAllModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
