@@ -1,0 +1,979 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@using System.Security.Claims
+@inject IOptions<AppSettings> appSettings
+
+@model PMS.UI.Pages.OutboundSales.CreateModel
+
+@{
+    ViewData["Title"] = "Outbound Sales Compendium";
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+    var employeeName = User.Identity?.Name ?? "User";
+}
+
+@section HeadBlock {
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+    <link href="~/lib/select2-bootstrap-5-theme/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <style>
+
+        .outbound-sales-page {
+            min-height: calc(100vh - 70px);
+            background: #f7f7f6;
+            padding: 10px 20px 25px;
+        }
+
+        .sales-container {
+            width: 100%;
+            min-height: calc(100vh - 105px);
+            background: #ffffff;
+            border: 1px solid #e1e1e1;
+            border-radius: 24px;
+            padding: 40px 45px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .sales-column {
+            width: 520px;
+            max-width: 100%;
+        }
+
+        .sales-topbar {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .logged-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px 6px 8px;
+            border: 1px solid #e1e1e1;
+            border-radius: 25px;
+            color: #222222;
+            font-size: 11px;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+            .logged-user span {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+        .user-avatar {
+            width: 27px;
+            height: 27px;
+            min-width: 27px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #17191d;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .logged-user strong {
+            font-weight: 600;
+        }
+
+        .sales-time {
+            color: #777777;
+            font-family: monospace;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+            .sales-time i {
+                margin-right: 4px;
+                color: #777777;
+            }
+
+        .sales-form-container {
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .sales-heading {
+            margin-bottom: 30px;
+        }
+
+            .sales-heading h1 {
+                margin: 0 0 5px;
+                color: #111111;
+                font-size: 28px;
+                line-height: 1.2;
+                font-weight: 700;
+                letter-spacing: -0.5px;
+            }
+
+            .sales-heading p {
+                margin: 0;
+                color: #657080;
+                font-size: 14px;
+            }
+
+        .sales-input {
+            position: relative;
+            width: 100%;
+            margin-bottom: 19px;
+        }
+
+            .sales-input i {
+                position: absolute;
+                left: 17px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #929292;
+                font-size: 13px;
+                z-index: 2;
+            }
+
+            .sales-input input {
+                width: 100%;
+                height: 48px;
+                padding: 0 15px 0 38px;
+                border: 1px solid #dedede;
+                border-radius: 11px;
+                background: #ffffff;
+                color: #151515;
+                font-size: 14px;
+                outline: none;
+                box-shadow: none;
+                transition: border-color .15s ease, box-shadow .15s ease;
+            }
+
+                .sales-input input::placeholder {
+                    color: #999999;
+                }
+
+
+                .sales-input input:focus {
+                    border-color: #8ea6e8;
+                    box-shadow: 0 0 0 3px rgba(66, 99, 235, .08);
+                }
+
+        .sales-select-group {
+            margin-top: 25px;
+            margin-bottom: 5px;
+        }
+
+            .sales-select-group label {
+                display: block;
+                margin-bottom: 9px;
+                color: #666666;
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 1.2px;
+            }
+
+            .sales-select-group .select2-container {
+                width: 100% !important;
+            }
+
+        .select2-container--bootstrap-5
+        .select2-selection {
+            min-height: 49px !important;
+            height: 49px !important;
+            border: 1px solid #dedede !important;
+            border-radius: 11px !important;
+            background: #ffffff !important;
+            box-shadow: none !important;
+        }
+
+        .select2-container--bootstrap-5
+        .select2-selection--single
+        .select2-selection__rendered {
+            height: 47px;
+            line-height: 47px !important;
+            padding-left: 15px !important;
+            padding-right: 40px !important;
+            color: #151515;
+            font-size: 14px;
+        }
+
+        .select2-container--bootstrap-5
+        .select2-selection--single
+        .select2-selection__placeholder {
+            color: #777777;
+        }
+
+        .select2-container--bootstrap-5
+        .select2-selection--single
+        .select2-selection__arrow {
+            height: 47px !important;
+            right: 8px !important;
+        }
+
+        .select2-container--bootstrap-5.select2-container--focus
+        .select2-selection,
+        .select2-container--bootstrap-5.select2-container--open
+        .select2-selection {
+            border-color: #8ea6e8 !important;
+            box-shadow: 0 0 0 3px rgba(66, 99, 235, .08) !important;
+        }
+
+        .select2-dropdown {
+            border-color: #dedede !important;
+            border-radius: 9px !important;
+            overflow: hidden;
+        }
+
+        .select2-results__option {
+            font-size: 13px;
+            padding: 9px 12px;
+        }
+
+        .validation-summary {
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+
+
+        .validation-message {
+            display: block;
+            margin-top: -12px;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+
+        .btn-log-sale {
+            width: 100%;
+            height: 52px;
+            margin-top: 19px;
+            border: 0;
+            border-radius: 12px;
+            background: #4263eb;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 8px 18px rgba(66, 99, 235, .20);
+            cursor: pointer;
+            transition: background .15s ease, box-shadow .15s ease, transform .1s ease;
+        }
+
+            .btn-log-sale:hover {
+                background: #3655d4;
+                color: #ffffff;
+                box-shadow: 0 10px 22px rgba(66, 99, 235, .25);
+            }
+
+
+            .btn-log-sale:active {
+                transform: translateY(1px);
+            }
+
+
+            .btn-log-sale:disabled {
+                opacity: .7;
+                cursor: not-allowed;
+            }
+
+
+            .btn-log-sale i {
+                font-size: 13px;
+            }
+
+
+        .button-time {
+            margin-left: 1px;
+        }
+
+        .sales-footer-note {
+            text-align: center;
+            margin-top: 22px;
+            color: #999999;
+            font-family: monospace;
+            font-size: 10px;
+        }
+
+        @@media (max-width: 767px) {
+
+            .outbound-sales-page {
+                padding: 0;
+                background: #ffffff;
+            }
+
+            .sales-container {
+                min-height: 100vh;
+                padding: 25px 18px 30px;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .sales-column {
+                width: 100%;
+            }
+
+            .sales-topbar {
+                width: 100%;
+                align-items: flex-start;
+            }
+
+
+            .logged-user {
+                max-width: 70%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                font-size: 10px;
+            }
+
+            .sales-time {
+                font-size: 10px;
+            }
+
+            .sales-form-container {
+                margin-top: 35px;
+            }
+            
+            .sales-heading {
+                margin-bottom: 27px;
+            }
+
+
+                .sales-heading h1 {
+                    font-size: 25px;
+                }
+
+
+                .sales-heading p {
+                    font-size: 13px;
+                }
+                
+            .sales-input input {
+                height: 50px;
+            }
+            
+            .btn-log-sale {
+                height: 52px;
+            }
+        }
+
+        @@media (max-width: 420px) {
+
+            .sales-container {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .sales-topbar {
+                gap: 8px;
+            }
+
+            .sales-time {
+                display: none;
+            }
+
+            .logged-user {
+                max-width: 100%;
+            }
+        }
+
+    </style>
+}
+
+<div class="outbound-sales-page">
+
+    <input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")" />
+    <input type="hidden" id="redirectToListing" value="@Url.Page("Index")" />
+
+    <div class="sales-container">
+        <div class="sales-column">
+            <div class="sales-topbar">
+                <div class="logged-user">
+
+                    <div class="user-avatar"
+                         id="user-avatar">
+                        U
+                    </div>
+
+                    <span>
+
+                        Logged in as:
+                        <strong>@employeeName</strong>
+                    </span>
+
+                </div>
+
+                <div class="sales-time">
+
+                    <i class="far fa-clock"></i>
+
+                    <span id="current-time">
+                        --/--/----, --:--:--
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="sales-form-container"> <div class="sales-heading">
+
+                    <h1>
+                        The Win Wall
+                    </h1>
+
+                </div>
+                <form method="post" id="frmSaleDetail">
+
+                    <div asp-validation-summary="ModelOnly"  class="text-danger validation-summary"> </div>
+
+                    <input asp-for="CreateSales.Date" type="hidden" id="sale-date" />
+
+                    <div class="sales-input">
+                        <i class="fas fa-phone-alt"></i>
+                        <input asp-for="CreateSales.CustomerPhoneNo" class="cus-phone" placeholder="Phone Number" autocomplete="off" />
+                    </div>
+
+                    <span asp-validation-for="CreateSales.CustomerPhoneNo"
+                          class="text-danger validation-message">
+                    </span>
+
+                    <div class="sales-input">
+                        <i class="far fa-user"></i>
+                        <input asp-for="CreateSales.CustomerName" class="cus-name" placeholder="Customer's Name" autocomplete="off" />
+                    </div>
+
+                    <span asp-validation-for="CreateSales.CustomerName" class="text-danger validation-message"> </span>
+
+                    <div class="sales-input">
+                        <i class="fas fa-hashtag"></i>
+                        <input asp-for="CreateSales.ConfirmationNo" class="conf-no" placeholder="Order Confirmation Number"  autocomplete="off" />
+                    </div>
+
+                    <span asp-validation-for="CreateSales.ConfirmationNo" class="text-danger validation-message"> </span>
+
+                    <div class="sales-select-group">
+                        <label asp-for="CreateSales.ProductId">PRODUCT SOLD</label>
+                        <select asp-for="CreateSales.ProductId" class="form-control select2 ddl-products" id="products">
+                            <option value=""></option>
+                        </select>
+                    </div>
+
+                    <span asp-validation-for="CreateSales.ProductId"
+                          class="text-danger validation-message">
+                    </span>
+
+                    <div class="sales-select-group">
+                        <label asp-for="CreateSales.CloserId">CLOSER'S NAME</label>
+                        <select asp-for="CreateSales.CloserId" class="form-control select2 ddl-closer" id="closedby">
+                            <option value=""></option>
+                        </select>
+                    </div>
+
+                    <span asp-validation-for="CreateSales.CloserId" class="text-danger validation-message"> </span>
+
+                    <button type="submit" class="btn-log-sale" id="btn-log-sale">
+                        <i class="fas fa-bullseye"></i>
+                        <span>Log Sale</span>
+
+                        <span class="button-time" id="button-time"> </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript" src="~/lib/select2/js/select2.min.js"> </script>
+    <script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+    <script type="text/javascript" src="~/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="~/lib/jquery-mask/jquery.mask.min.js"></script>
+
+    <script type="text/javascript">
+
+        $('a[href="/OutboundSales/Create"]').addClass('active');
+        var apiEndpoint = '@apiEndpoint';
+        var employeeId = '@employeeId';
+
+        $(document).ready(function () {
+
+            let today = new Date().toISOString().split('T')[0];
+            $('#sale-date').val(today);
+
+            setUserInitials();
+            updateClock();
+            setInterval(updateClock, 1000);
+            initializeSelect2();
+            loadProducts();
+            initEmployees();
+        });
+
+        function setUserInitials() {
+
+            var name = '@employeeName';
+            if (!name) {
+                $('#user-avatar').text('U');
+                return;
+            }
+
+            var parts = name.trim().split(/\s+/);
+            var initials = '';
+
+            if (parts.length >= 2) {
+
+                initials = parts[0].charAt(0) + parts[parts.length - 1].charAt(0);
+            }
+            else {
+
+                initials = parts[0].substring(0, 2);
+            }
+
+            $('#user-avatar').text(initials.toUpperCase());
+        }
+
+        function updateClock() {
+
+            var now = new Date();
+            var day = String(now.getDate()).padStart(2, '0');
+            var month = String(now.getMonth() + 1).padStart(2, '0');
+            var year = now.getFullYear();
+            
+            var hours = String(now.getHours()).padStart(2, '0');
+            var minutes = String(now.getMinutes()).padStart(2, '0');
+            var seconds = String(now.getSeconds()).padStart(2, '0');
+
+            var display = day + '/' + month + '/' + year + ', ' + hours + ':' + minutes + ':' + seconds;
+
+            $('#current-time').text(display);
+            $('#button-time').text('— ' + hours + ':' + minutes + ':' + seconds);
+
+        }
+
+        function initializeSelect2() {
+
+            $('.ddl-products').select2({
+
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Select product',
+                allowClear: true
+            });
+
+            $('.ddl-closer').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Choose closer',
+                allowClear: true
+            });
+        }
+
+        function loadProducts() {
+
+            $.ajax({
+                type: 'GET',
+                url: apiEndpoint + 'OutboundSales/GetProducts',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                headers: {
+                    'Authorization': 'Bearer ' +  $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    var data = response.data || [];
+                    var $select = $('.ddl-products');
+                    $select.find('option:not(:first)').remove();
+
+                    $.each(
+                        data,
+                        function (key, item) {
+                            $select.append($('<option>', {value: item.id, text: item.name }));
+                        }
+                    );
+
+                    $select.val(null).trigger('change');
+                },
+
+                error: function () {
+
+                    toastr.error('Unable to load products.');
+                }
+            });
+        }
+
+        function initEmployees() {
+
+            var apiurl = apiEndpoint + 'Employee/GetAll';
+
+            $.ajax({
+                type: 'GET',
+                url: apiurl,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                headers: {
+                    'Authorization': 'Bearer ' +  $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+
+                success: function (response) {
+                    var data =  response.data || [];
+                    var $select =  $('.ddl-closer');
+                    $select.find('option:not(:first)').remove();
+
+                    $.each(data,
+                        function (key, item) {
+                            $select.append($('<option>', {value: item.id, text: item.name }));
+                        }
+                    );
+
+                    $select.val(null).trigger('change');
+                },
+
+                error: function () {
+                    toastr.error('Unable to load employees.');
+                }
+            });
+        }
+
+        $('#frmSaleDetail').on('submit', function (e) {
+
+                e.preventDefault();
+                if (!$('#frmSaleDetail').valid()) {
+                    return;
+                }
+
+                var productId = Number($('.ddl-products').val() || 0 );
+                var closerId = Number($('.ddl-closer').val() || 0 );
+
+                var formData = {
+
+                    createDate: $('#sale-date').val(),
+                    employeeId: employeeId,
+                    customerName: $('.cus-name').val(),
+                    customerPhoneNo: $('.cus-phone').val(),
+                    confirmationNo: $('.conf-no').val(),
+                    productId:productId,
+                    quantity: productId === 3 ? 2 : 1,
+                    closerId: closerId
+                };
+
+                var $button = $('#btn-log-sale');
+                $button.prop('disabled', true);
+
+                /* Processing */
+
+                $.blockUI({
+                    baseZ: 1001,
+                    message:
+                        '<div style="padding:15px;">' +
+                        '<i class="fas fa-spinner fa-spin me-2"></i>' +
+                        'Processing...' +
+                        '</div>'
+                });
+
+                $.ajax({
+
+                    type: 'POST',
+                    url: apiEndpoint + 'OutboundSales',
+                    contentType:'application/json; charset=utf-8',
+                    dataType: 'json',
+                    data: JSON.stringify(formData),
+
+                    headers: {
+                        'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val()
+                    },
+
+                    success: function (data) {
+                        $.unblockUI();
+
+                        if (data.succeeded) {
+                            toastr.success(data.messages && data.messages.length > 0 ? data.messages[0] : 'Sale logged successfully.');
+                            setTimeout(goBack, 1000 );
+                        }
+                        else {
+
+                            $button.prop('disabled', false );
+                            toastr.error(data.message || 'Unable to log sale.' );
+                        }
+                    },
+
+                    error: function (jqXHR) {
+
+                        $.unblockUI();
+                        $button.prop('disabled', false);
+
+                        if (
+                            jqXHR.responseJSON &&
+                            jqXHR.responseJSON.errors
+                        ) {
+
+                            $.each(jqXHR.responseJSON.errors,
+                                function (
+                                    field,
+                                    message
+                                ) {
+
+                                    if (
+                                        Array.isArray(message)
+                                    ) {
+                                        $.each(
+                                            message,
+                                            function (
+                                                index,
+                                                errorMessage
+                                            ) {
+
+                                                toastr.error(errorMessage);
+                                            }
+                                        );
+                                    }
+                                    else {
+
+                                        toastr.error(
+                                            message
+                                        );
+                                    }
+                                }
+                            );
+                        }
+                        else {
+
+                            toastr.error('An unexpected error occurred.');
+                        }
+                    }
+                });
+            }
+        );
+
+        function goBack() {
+            window.location.href = $('#redirectToListing').val();
+        }
+
+    </script>
+}
+
+
+@* @page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+@model PMS.UI.Pages.OutboundSales.CreateModel
+@{
+    ViewData["Title"] = "Outbound Sales";
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+}
+
+@using System.Security.Claims;
+@{
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+@section HeadBlock {
+	<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+	<link href="~/lib/select2-bootstrap-5-theme/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+}
+
+<div class="page-header">
+    <div class="page-title">
+        <h4>@ViewData["Title"]</h4>
+        <h6>Log New Sales</h6>
+    </div>
+</div>
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<input type="hidden" id="redirectToListing" value="@Url.Page("Index")" />
+
+<div class="row">
+	<div class="col-md-4">
+		<form method="post" id="frmSaleDetail">
+			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+			<div class="form-group">
+				<label asp-for="CreateSales.Date" class="control-label"></label>
+				<input asp-for="CreateSales.Date"
+					   type="date"
+					   class="form-control datepicker" id="sale-date"
+					   readonly />
+				<span asp-validation-for="CreateSales.Date" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="CreateSales.CustomerPhoneNo" class="control-label"></label>
+				<input asp-for="CreateSales.CustomerPhoneNo" class="form-control cus-phone" />
+				<span asp-validation-for="CreateSales.CustomerPhoneNo" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="CreateSales.CustomerName" class="control-label"></label>
+				<input asp-for="CreateSales.CustomerName" class="form-control cus-name" />
+				<span asp-validation-for="CreateSales.CustomerName" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="CreateSales.ConfirmationNo" class="control-label"></label>
+				<input asp-for="CreateSales.ConfirmationNo" class="form-control conf-no" />
+				<span asp-validation-for="CreateSales.ConfirmationNo" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="CreateSales.ProductId" class="control-label">Product Sold</label>
+				<select asp-for="CreateSales.ProductId" class="form-control select2 ddl-products" id="products">
+					<option value="0">Choose</option>
+				</select>
+				<span asp-validation-for="CreateSales.ProductId" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="CreateSales.CloserId" class="control-label">Closed By</label>
+				<select asp-for="CreateSales.CloserId" class="form-control select2 ddl-closer" id="closedby">
+					<option value="0">Choose</option>
+				</select>
+				<span asp-validation-for="CreateSales.CloserId" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<input type="submit" value="Log Sale" class="btn btn-primary" />
+			</div>
+
+		</form>
+	</div>
+</div>
+
+@section ScriptsBlock {
+	<partial name="_ValidationScriptsPartial" />
+	<script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+	<script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+	<script type="text/javascript" src="~/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
+	<script type="text/javascript" src="~/lib/jquery-mask/jquery.mask.min.js"></script>
+
+	<script type="text/javascript">
+		$('a[href="/OutboundSales/Create"]').addClass('active');
+
+		var apiEndpoint = '@apiEndpoint';
+		var employeeId = '@employeeId';
+
+		$(document).ready(function () {
+			let today = new Date().toISOString().split('T')[0];
+			$('#sale-date').val(today);
+			loadProducts();
+			initEmployees();
+		});
+
+		function loadProducts() {
+			$.ajax({
+				type: 'GET',
+				url: apiEndpoint + 'OutboundSales/GetProducts',
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				headers: {
+					'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+				},
+				success: function (response) {
+
+					var data = response.data;
+					var $select = $('.ddl-products');
+
+					$.each(data, function (key, item) {
+						$select.append('<option value=' + item.id + '>' + item.name + '</option>');
+					});
+				}
+			})
+		}
+
+		function initEmployees() {
+			var apiurl = apiEndpoint + 'Employee/GetAll';
+			$.ajax({
+				type: 'GET',
+				url: apiurl,
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				headers: {
+					'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+				},
+				success: function (response) {
+					var result = response.data.map(function (item) {
+						return { id: item.id, text: item.name };
+					});
+					$('.ddl-closer').select2({
+						data: result,
+						placeholder: 'Choose', //Not working
+						theme: 'bootstrap-5',
+						width: '100%',
+					});
+				},
+				failure: function (response) {
+					toastr.error('error!');
+				}
+			}).done(function (result) {
+			});
+		}
+
+		$('#frmSaleDetail').on('submit', function (e) {
+			e.preventDefault();
+
+			if (!$('#frmSaleDetail').valid()) {
+				return;
+			}
+
+			var productId = Number($(".ddl-products option:selected").val());
+
+			debugger
+			var formData = {
+				createDate: $('#sale-date').val(),
+				employeeId: employeeId,
+				customerName: $('.cus-name').val(),
+				customerPhoneNo: $('.cus-phone').val(),
+				confirmationNo: $('.conf-no').val(),
+				productId: productId,
+				quantity: productId === 3 ? 2 : 1,
+				closerId: $(".ddl-closer option:selected").val(),
+			};
+
+			$.blockUI({ baseZ: 1001, message: '<h1>Processing...</h1>' });
+
+			$.ajax({
+				type: 'POST',
+				url: apiEndpoint + 'OutboundSales',
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				data: JSON.stringify(formData),
+				headers: {
+					'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+				},
+				success: function (data) {
+					$.unblockUI();
+					if (data.succeeded) {
+						toastr.success(data.messages[0]);
+						window.setInterval(goBack, 1000);
+					}
+					else {
+						toastr.error(data.message);
+					}
+				},
+				error: function (jqXHR, textStatus, errorThrown) {
+					$.unblockUI();
+					var errors = JSON.parse(jqXHR.responseText).errors;
+					$.each(jqXHR.responseJSON.errors, function (field, message) {
+						toastr.error(message);
+					});
+				}
+			}).done(function (result) {
+				console.log(result);
+			});
+		});
+
+		function goBack() {
+			window.location.href = $('#redirectToListing').val();
+		}
+
+	</script>
+
+}
+
+
+ *@

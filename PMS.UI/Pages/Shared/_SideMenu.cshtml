@@ -139,6 +139,16 @@
                 </li>
             }
 
+            <li class="submenu">
+                <a class="" href="javascript:void(0);"><i class="fa-solid fas fas fa-phone-volume fa-1-25x me-2"></i><span>Outbound Sales</span> <span class="menu-arrow"></span></a>
+                <ul>
+                    <li><a asp-page="/OutboundSales/Index">Sales List</a></li>
+                    <li><a asp-page="/OutboundSales/Create">Sales Compendium</a></li>
+                    <li><a asp-page="/OutboundSales/SalesStatus">Manage Sales Status</a></li>
+
+                </ul>
+            </li>
+
             @if (importPermission)
             {
                 <li class="submenu">
