@@ -145,7 +145,6 @@
                     <li><a asp-page="/OutboundSales/Index">Sales List</a></li>
                     <li><a asp-page="/OutboundSales/Create">Sales Compendium</a></li>
                     <li><a asp-page="/OutboundSales/SalesStatus">Manage Sales Status</a></li>
-
                 </ul>
             </li>
 
@@ -307,12 +306,14 @@
                     <ul>
                         @if (triumvirateTangoOfTelephonyReportPermission)
                         {
-                            <li><a asp-page="/Reports/TriumvirateTangoOfTelephony">TriumvirateTangoOfTelephony</a></li>
+                            <li><a asp-page="/Reports/TriumvirateTangoOfTelephony">Triumvirate Tango Of Telephony</a></li>
                         }
                         @if (productivityandTimeMatrixReportPermission)
                         {
                             <li><a asp-page="/Reports/DailyProductivityandTimeAllocationMatrix">Daily Productivity and Time Allocation Matrix</a></li>
                         }
+                        <li><a asp-page="/Reports/DailyOutboundSales">Daily Cadence</a></li>
+                        <li><a asp-page="/Reports/OutboundSalesSummary">Spectrum of Amplitude</a></li>
 
                     </ul>
                 </li>
