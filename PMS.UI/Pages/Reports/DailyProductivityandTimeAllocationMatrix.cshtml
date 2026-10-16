@@ -134,7 +134,7 @@
 
         $(document).ready(function () {
             initDepartments();
-            initEmployees();
+            // initEmployees();
             loadReport(fromDate, toDate, departmentId, employeeId);
         });
 
@@ -150,6 +150,7 @@
 
             $(".ddl-Departments").change(function () {
                 departmentId = $(this).val() || null;
+                GetEmployeesByDepartmentId();
             });
 
             $(".ddl-Employees").change(function () {
@@ -213,27 +214,37 @@
             });
         }
 
-        function initEmployees() {
+        function GetEmployeesByDepartmentId() {
+
             return $.ajax({
                 type: 'GET',
-                url: apiEndpoint + 'Employee/GetAll',
+                url: apiEndpoint + 'Employee/GetByDepartmentId?departmentId=' + departmentId,
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
                 headers: {
-                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+                    'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val()
                 },
                 success: function (response) {
 
-                    var result = response.data.map(function (item) {
-                        return { id: item.id, text: item.name };
+                    var $dropdown = $('.ddl-Employees');
+                    $dropdown.empty();
+
+                    $dropdown.append(new Option('Choose', '', true, true));
+
+                    response.data.forEach(function (item) {
+                        $dropdown.append(new Option(item.name, item.id));
                     });
 
-                    $('.ddl-Employees').select2({
-                        data: result,
-                        placeholder: 'Choose',
-                        theme: 'bootstrap-5',
-                        width: '100%'
-                    });
+                    if (!$dropdown.hasClass('select2-hidden-accessible')) {
+                        $dropdown.select2({
+                            placeholder: 'Choose',
+                            theme: 'bootstrap-5',
+                            width: '100%',
+                            allowClear: true
+                        });
+                    }
+
+                    $dropdown.val('').trigger('change');
                 }
             });
         }

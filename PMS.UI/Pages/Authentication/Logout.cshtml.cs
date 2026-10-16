@@ -39,6 +39,11 @@ namespace PMS.UI.Pages.Authentication
             HttpContext.Session.SetString("Organizational_Chart", "");
             HttpContext.Session.SetString("Corrective_Action", "");
 
+            HttpContext.Session.SetString("Outbound_Sales", "");
+            HttpContext.Session.SetString("Outbound_Sales_List", "");
+            HttpContext.Session.SetString("Outbound_Sales_Compendium", "");
+            HttpContext.Session.SetString("Outbound_Manage_Sales_Status", "");
+
             HttpContext.Session.SetString("Import", "");
             HttpContext.Session.SetString("Call_Logs", "");
             HttpContext.Session.SetString("Call_Summary_All", "");
@@ -77,6 +82,8 @@ namespace PMS.UI.Pages.Authentication
             HttpContext.Session.SetString("Reports", "");
             HttpContext.Session.SetString("TriumvirateTangoOfTelephonyReport", "");
             HttpContext.Session.SetString("ProductivityandTimeMatrixReport", "");
+            HttpContext.Session.SetString("Daily_Cadence_Report", "");
+            HttpContext.Session.SetString("Spectrum_Of_Amplitude_Report", "");
 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToPage("/Authentication/Login");

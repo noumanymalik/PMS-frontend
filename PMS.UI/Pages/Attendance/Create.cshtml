@@ -1,0 +1,323 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using PMS.UI.Options
+@inject IOptions<AppSettings> appSettings
+@model PMS.UI.Pages.Attendance.CreateModel
+@{
+    ViewData["Title"] = "Mark Attendance";
+    var apiEndpoint = appSettings.Value.ApiEndpoint;
+}
+
+@using System.Security.Claims;
+@{
+    var employeeId = User.FindFirst(ClaimTypes.Actor)?.Value;
+}
+
+@section HeadBlock {
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+}
+
+<style>
+
+	.attendance-card {
+		border-radius: 12px;
+		background-color: #fff;
+		overflow: visible;
+	}
+
+		.attendance-card .card-header {
+			border-radius: 12px 12px 0 0;
+		}
+
+		.attendance-card .form-label {
+			font-size: 14px;
+			font-weight: 600;
+			color: #344054;
+			margin-bottom: 7px;
+		}
+
+		.attendance-card .form-control {
+			min-height: 42px;
+			border: 1px solid #d0d5dd;
+			border-radius: 7px;
+			font-size: 14px;
+			box-shadow: none;
+		}
+
+			.attendance-card .form-control:focus {
+				border-color: #86b7fe;
+				box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.10);
+			}
+
+		.attendance-card .input-group-text {
+			border: 1px solid #d0d5dd;
+			border-radius: 7px 0 0 7px;
+		}
+
+		.attendance-card .input-group .form-control {
+			border-radius: 0 7px 7px 0;
+		}
+
+	.btn-save-attendance {
+		width: 100%;
+		min-height: 43px;
+		border-radius: 7px;
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	/* Select2 styling */
+	.attendance-card .select2-container {
+		width: 100% !important;
+	}
+
+	.attendance-card .select2-container--default
+	.select2-selection--single {
+		height: 42px;
+		border: 1px solid #d0d5dd;
+		border-radius: 7px;
+		display: flex;
+		align-items: center;
+	}
+
+		.attendance-card .select2-container--default
+		.select2-selection--single
+		.select2-selection__rendered {
+			line-height: normal;
+			padding-left: 12px;
+			font-size: 14px;
+			color: #344054;
+		}
+
+		.attendance-card .select2-container--default
+		.select2-selection--single
+		.select2-selection__arrow {
+			height: 40px;
+			right: 5px;
+		}
+
+	.attendance-card .select2-container--default.select2-container--focus
+	.select2-selection--single {
+		border-color: #86b7fe;
+		box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.10);
+	}
+
+	.attendance-card .card-body {
+		padding: 18px !important;
+	}
+
+</style>
+
+<input name="__RequestVerificationToken" type="hidden" value="@HttpContext.Session.GetString("API_Token")">
+
+<input type="hidden" id="redirectToListing" value="@Url.Page("Index")" />
+
+<div class="row">
+	<div class="col-12 col-md-6 col-lg-4">
+
+		<div class="card attendance-card border-0 shadow-sm">
+
+			<div class="card-header bg-white border-bottom py-3">
+				<h5 class="mb-1 fw-semibold">
+					<i class="fas fa-calendar-check text-primary me-2"></i>
+					Attendance Entry
+				</h5>
+				<small class="text-muted">
+					Record employee attendance
+				</small>
+			</div>
+
+			<div class="card-body p-4">
+
+				<form method="post" id="frmAttendanceDetail">
+
+					<div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+					<div class="form-group mb-3">
+						<label asp-for="Attendance.Date" class="form-label">
+							Date
+						</label>
+
+						<div class="input-group">
+							<span class="input-group-text bg-light">
+								<i class="fas fa-calendar-alt text-muted"></i>
+							</span>
+
+							<input asp-for="Attendance.Date" type="date" class="form-control datepicker" id="date" readonly />
+						</div>
+
+						<span asp-validation-for="Attendance.Date"  class="text-danger small"></span>
+					</div>
+
+					<div class="form-group mb-3">
+						<label asp-for="Attendance.AttendanceDate" class="form-label">
+							Attendance Date
+						</label>
+
+						<div class="input-group">
+							<span class="input-group-text bg-light">
+								<i class="fas fa-calendar-alt text-muted"></i>
+							</span>
+
+							<input asp-for="Attendance.AttendanceDate" type="date" class="form-control datepicker" id="att-date" />
+						</div>
+
+						<span asp-validation-for="Attendance.AttendanceDate" class="text-danger small"></span>
+					</div>
+
+					<div class="form-group mb-3">
+						<label asp-for="Attendance.EmployeeId" class="form-label">
+							Employee <span class="text-danger">*</span>
+						</label>
+
+						<select asp-for="Attendance.EmployeeId"	class="form-control select2 ddl_Employees" id="emp-id">
+							<option value="0">Choose employee</option>
+						</select>
+
+						<span asp-validation-for="Attendance.EmployeeId" class="text-danger small"></span>
+					</div>
+
+					<div class="form-group mb-4">
+						<label asp-for="Attendance.LegendId" class="form-label">Attendance Legend<span class="text-danger">*</span>
+						</label>
+
+						<select asp-for="Attendance.LegendId" class="form-control select2 legends" id="legend-id">
+							<option value="0">Choose legend</option>
+						</select>
+
+						<span asp-validation-for="Attendance.LegendId" class="text-danger small"></span>
+					</div>
+
+					<div class="d-flex gap-2">
+						<button type="submit" class="btn btn-primary btn-save-attendance">
+							<i class="fas fa-save me-2"></i>
+							Save Attendance
+						</button>
+					</div>
+
+				</form>
+
+			</div>
+		</div>
+
+	</div>
+</div>
+
+@section ScriptsBlock {
+	<partial name="_ValidationScriptsPartial" />
+	<script type="text/javascript" src="~/lib/select2/js/select2.min.js"></script>
+	<script type="text/javascript" src="~/lib/datatables.net/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="~/lib/moment.js/moment.min.js"></script>
+	<script type="text/javascript" src="~/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
+	<script type="text/javascript" src="~/lib/jquery-mask/jquery.mask.min.js"></script>
+
+	<script type="text/javascript">
+		$('a[href="/Attendance/Create"]').addClass('active');
+
+		var apiEndpoint = '@apiEndpoint';
+		var employeeId = '@employeeId';
+
+		$(document).ready(function () {
+			let today = new Date().toISOString().split('T')[0];
+			$('#date').val(today);
+			$('#att-date').val(today);
+			loadEmployees();
+			loadLegends();
+		});
+
+		function loadEmployees() {
+			$.ajax({
+				type: 'GET',
+				url: apiEndpoint + 'Employee/GetBySupervisorId?supervisorId=' + employeeId,
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				headers: {
+					'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+				},
+				success: function (response) {
+
+					var data = response.data;
+					var $select = $('.ddl_Employees');
+
+					$.each(data, function (key, item) {
+						$select.append('<option value=' + item.id + '>' + item.name + '</option>');
+					});
+				}
+			})
+		}
+
+		function loadLegends() {
+			$.ajax({
+				type: 'GET',
+				url: apiEndpoint + 'Presence/GetLegends',
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				headers: {
+					'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+				},
+				success: function (response) {
+
+					var data = response.data;
+					var $select = $('.legends');
+
+					$.each(data, function (key, item) {
+						$select.append('<option value=' + item.id + '>' + item.name + '</option>');
+					});
+				}
+			})
+		}
+
+		$('#frmAttendanceDetail').on('submit', function (e) {
+			e.preventDefault();
+
+			if (!$('#frmAttendanceDetail').valid()) {
+				return;
+			}
+			debugger
+			var formData = {
+				createDate: $('#date').val(),
+				attendanceDate: $('#att-date').val(),
+				employeeId: $('#emp-id').val(),
+				legendId: $('#legend-id').val(),
+			};
+
+			$.blockUI({ baseZ: 1001, message: '<h1>Processing...</h1>' });
+
+			$.ajax({
+				type: 'POST',
+				url: apiEndpoint + 'Presence/CreateAttendance',
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				data: JSON.stringify(formData),
+				headers: {
+					'Authorization': 'Bearer ' + $('input:hidden[name="__RequestVerificationToken"]').val(),
+				},
+				success: function (data) {
+					$.unblockUI();
+					if (data.succeeded) {
+						toastr.success(data.messages[0]);
+						window.setInterval(goBack, 1000);
+					}
+					else {
+						toastr.error(data.message);
+					}
+				},
+				error: function (jqXHR, textStatus, errorThrown) {
+					$.unblockUI();
+					var errors = JSON.parse(jqXHR.responseText).errors;
+					$.each(jqXHR.responseJSON.errors, function (field, message) {
+						toastr.error(message);
+					});
+				}
+			}).done(function (result) {
+				console.log(result);
+			});
+		});
+
+		function goBack() {
+			window.location.href = $('#redirectToListing').val();
+		}
+
+	</script>
+
+}
