@@ -84,6 +84,7 @@ namespace PMS.UI.Pages.Authentication
             HttpContext.Session.SetString("ProductivityandTimeMatrixReport", "");
             HttpContext.Session.SetString("Daily_Cadence_Report", "");
             HttpContext.Session.SetString("Spectrum_Of_Amplitude_Report", "");
+            HttpContext.Session.SetString("Interstice_Log_Report", "");
 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToPage("/Authentication/Login");

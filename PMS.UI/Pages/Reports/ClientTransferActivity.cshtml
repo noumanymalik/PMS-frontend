@@ -68,6 +68,9 @@
                                             <option value="TMobile">T-Mobile</option>
                                             <option value="ADT">ADT</option>
                                             <option value="AT&T">AT&T</option>
+                                            <option value="Business">Business</option>
+                                            <option value="DirectTV">DirectTV</option>
+                                            <option value="Viviny">Viviny</option>
                                         </select>
                                     </div>
 
@@ -186,7 +189,7 @@
                 var $dateRangeData = $('#divDateRange').data('daterangepicker');
                 var startDate = $dateRangeData !== undefined ? $dateRangeData.startDate.format('MM-DD-YYYY') : moment().subtract(1, 'days').startOf('day').format('YYYY-MM-DD');
                 var endDate = $dateRangeData !== undefined ? $dateRangeData.endDate.format('MM-DD-YYYY') : moment().format('YYYY-MM-DD');
-                downloadTriumvirateTangoOfTelephonyExcel(startDate, endDate, employeeId, reportType, helpingHand, valid);
+                downloadExcel(startDate, endDate, employeeId, reportType, helpingHand, valid);
             });
 
             var start = moment().subtract(1, 'days');
@@ -293,6 +296,78 @@
                     searchPlaceholder: "Search...",
                     search: "",
                     lengthMenu: "_MENU_ &nbsp;items/page"
+                }
+            });
+        }
+
+        function downloadExcel(fromDate, toDate, employeeId, reportType, helpingHand, valid) {
+
+            $.ajax({
+                url: apiEndpoint + 'Reporting/ClientTransferActivity/download-excel',
+
+                type: 'GET',
+
+                headers: {
+                    'Authorization': 'Bearer ' +
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+
+                data: {
+                    StartDate: fromDate,
+                    EndDate: toDate,
+                    EmployeeId: employeeId,
+                    ReportType: reportType,
+                    HelpingHand: helpingHand,
+                    Valid: valid
+                },
+
+                xhrFields: {
+                    responseType: 'blob'
+                },
+
+                success: function (data, status, xhr) {
+
+                    var filename = 'TheIntersticeLog.xlsx';
+
+                    var disposition = xhr.getResponseHeader('Content-Disposition');
+
+                    if (disposition) {
+                        var match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+
+                        if (match && match[1]) {
+                            filename = match[1].replace(/['"]/g, '');
+                        }
+                    }
+
+                    var blob = new Blob([data], {
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
+
+                    var url = window.URL.createObjectURL(blob);
+
+                    var link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    window.URL.revokeObjectURL(url);
+                },
+
+                error: function (xhr, status, error) {
+
+                    if (xhr.response instanceof Blob) {
+
+                        var reader = new FileReader();
+
+                        reader.onload = function () {
+                            console.log('API Error:', reader.result);
+                        };
+
+                        reader.readAsText(xhr.response);
+                    }
                 }
             });
         }

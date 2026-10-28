@@ -58,6 +58,7 @@
     var productivityandTimeMatrixReportPermission = HasPermission.Get("ProductivityandTimeMatrixReport", context.HttpContext);
     var daily_Cadence_ReportPermission = HasPermission.Get("Daily_Cadence_Report", context.HttpContext);
     var spectrum_Of_Amplitude_ReportPermission = HasPermission.Get("Spectrum_Of_Amplitude_Report", context.HttpContext);
+    var interstice_Log_ReportPermission = HasPermission.Get("Interstice_Log_Report", context.HttpContext);
   
     var policesPermission = HasPermission.Get("Polices", context.HttpContext);
     var policiyDocumentsPermisssion = HasPermission.Get("Policiy_Documents", context.HttpContext);
@@ -348,7 +349,10 @@
                         {
                             <li><a asp-page="/Reports/OutboundSalesSummary">Spectrum of Amplitude</a></li>
                         }
-                        <li><a asp-page="/Reports/ClientTransferActivity">The Interstice Log</a></li>
+                        @if (interstice_Log_ReportPermission)
+                        {
+                            <li><a asp-page="/Reports/ClientTransferActivity">The Interstice Log</a></li>
+                        }
                     </ul>
                 </li>
             }
